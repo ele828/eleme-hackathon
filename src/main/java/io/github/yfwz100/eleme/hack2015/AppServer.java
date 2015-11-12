@@ -24,8 +24,10 @@ public class AppServer {
         connector.setPort(8080);
         server.setConnectors(new Connector[]{connector});
         ServletContextHandler context = new ServletContextHandler();
+
         context.setContextPath("/");
 
+        context.addServlet(HelloServlet.class, "/hello");
         context.addServlet(LoginServlet.class, "/login");
 
         context.addFilter(AccessTokenFilter.class, "/carts", EnumSet.of(DispatcherType.REQUEST));

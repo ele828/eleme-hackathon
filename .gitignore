@@ -1,0 +1,4 @@
+target
+.idea
+.vagrant
+app.log

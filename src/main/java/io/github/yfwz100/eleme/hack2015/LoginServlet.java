@@ -49,7 +49,14 @@ public class LoginServlet extends HttpServlet {
                                 .toString()
                 );
             }
+        } catch (Exception e) {
+            resp.setStatus(404);
+            resp.getOutputStream().println("Error 404 NotFound");
         }
     }
 
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        this.doPost(req, resp);
+    }
 }

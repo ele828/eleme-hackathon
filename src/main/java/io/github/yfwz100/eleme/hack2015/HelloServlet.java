@@ -1,5 +1,6 @@
 package io.github.yfwz100.eleme.hack2015;
 
+import javax.json.Json;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -16,7 +17,12 @@ public class HelloServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        resp.getOutputStream().println("Hello, world!");
+        resp.setCharacterEncoding("utf-8");
+        resp.getOutputStream().println(
+                Json.createObjectBuilder()
+                        .add("cart_id", "你好")
+                        .build().toString()
+        );
     }
 
 }
