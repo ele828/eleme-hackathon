@@ -16,4 +16,8 @@ public class CartsServiceMock implements CartsService {
     @Override
     public void addFood(int foodId, int count) throws CartsServiceException {
     }
+
+    @Override
+    public void generateOrder(String cartId) throws CartsServiceException {
+    }
 }
