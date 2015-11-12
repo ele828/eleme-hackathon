@@ -1,62 +1,53 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
+import io.github.yfwz100.eleme.hack2015.Storage;
+import io.github.yfwz100.eleme.hack2015.exceptions.CartNotFoundException;
+import io.github.yfwz100.eleme.hack2015.exceptions.FoodNotFoundException;
+import io.github.yfwz100.eleme.hack2015.exceptions.FoodOutOfLimitException;
+import io.github.yfwz100.eleme.hack2015.exceptions.NoAccessToCartException;
+import io.github.yfwz100.eleme.hack2015.models.Cart;
+import io.github.yfwz100.eleme.hack2015.models.Food;
+import io.github.yfwz100.eleme.hack2015.models.User;
+
 /**
- * The carts service.
+ * The mock of carts service.
+ *
+ * @author yfwz100
  */
-public interface CartsService {
+public class CartsService {
 
-    /**
-     * Get the corresponding cart id for given access token.
-     *
-     * @param accessToken the access token.
-     * @return the cart Id.
-     */
-    String getCartId(String accessToken);
-
-    /**
-     * Add food to the cart.
-     *
-     * @param foodId the food id.
-     * @param count  the quantity.
-     * @throws CartsServiceException
-     */
-    void addFood(int foodId, int count) throws CartsServiceException;
-
-    /**
-     * Generate the order from given cart id.
-     *
-     * @param cartId the id of the cart.
-     * @throws CartsServiceException
-     */
-    void generateOrder(String cartId) throws CartsServiceException;
-
-    /**
-     * The root exception for carts service.
-     */
-    class CartsServiceException extends Exception {
+    FoodsService foodsService = new FoodsService();
+    public Cart createCart(String accessToken) {
+        User user = Storage.getUser(accessToken);
+        Cart cart = new Cart(user);
+        Storage.addCart(cart);
+        return cart;
     }
 
-    /**
-     * The given cart not found.
-     */
-    class CartsServiceNotFoundException extends CartsServiceException {
+    public void addFoodToCart(String accessToken, String cartId, int foodId, int count)
+            throws FoodOutOfLimitException, FoodNotFoundException, CartNotFoundException, NoAccessToCartException {
+
+        Cart cart = Storage.getCart(cartId);
+        if (cart == null)
+            throw new CartNotFoundException();
+
+        if (!cart.getUser().getAccessToken().equals(accessToken))
+            throw new NoAccessToCartException();
+
+        Food food = foodsService.getFood(foodId);
+        if (food == null)
+            throw new FoodNotFoundException();
+
+        if (!cart.checkAvailable(count))
+            throw new FoodOutOfLimitException();
+
+        for (int i = 0; i < count; i++) {
+            boolean success = cart.addFood(food);
+            if (!success)
+                throw new FoodOutOfLimitException();
+        }
     }
 
-    /**
-     * The user is not authorized to access the cart.
-     */
-    class UnauhorizedAccessException extends CartsServiceException {
-    }
-
-    /**
-     * Food is out of limit.
-     */
-    class FoodOutOfLimitException extends CartsServiceException {
-    }
-
-    /**
-     * Food is not found.
-     */
-    class FoodNotFoundException extends CartsServiceException {
+    public void generateOrder(String cartId)  {
     }
 }

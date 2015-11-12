@@ -1,5 +1,6 @@
 package io.github.yfwz100.eleme.hack2015;
 
+import io.github.yfwz100.eleme.hack2015.services.OrdersService;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -30,13 +31,18 @@ public class AppServer {
         context.addServlet(HelloServlet.class, "/hello");
         context.addServlet(LoginServlet.class, "/login");
 
+//        context.addFilter(AccessTokenFilter.class, "/foods", EnumSet.of(DispatcherType.REQUEST));
+        context.addServlet(FoodsServlet.class, "/foods");
+
         context.addFilter(AccessTokenFilter.class, "/carts", EnumSet.of(DispatcherType.REQUEST));
         context.addServlet(CartsServlet.class, "/carts");
 
-        context.addFilter(AccessTokenFilter.class, "/foods", EnumSet.of(DispatcherType.REQUEST));
-        context.addServlet(FoodsServlet.class, "/foods");
+        context.addFilter(AccessTokenFilter.class, "/carts/*", EnumSet.of(DispatcherType.REQUEST));
+        context.addServlet(NewFoodServlet.class, "/carts/*");
 
-//        context.addServlet(AsyncEchoServlet.class, "/echo/*");
+        context.addFilter(AccessTokenFilter.class, "/orders*", EnumSet.of(DispatcherType.REQUEST));
+        context.addServlet(OrderServlet.class, "/orders");
+
         HandlerCollection handlers = new HandlerCollection();
         handlers.setHandlers(new Handler[]{context, new DefaultHandler()});
         server.setHandler(handlers);

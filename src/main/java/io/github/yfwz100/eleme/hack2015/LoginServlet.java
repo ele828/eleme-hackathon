@@ -1,7 +1,7 @@
 package io.github.yfwz100.eleme.hack2015;
 
+import io.github.yfwz100.eleme.hack2015.models.User;
 import io.github.yfwz100.eleme.hack2015.services.AccessTokenService;
-import io.github.yfwz100.eleme.hack2015.services.mock.AccessTokenServiceMock;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -20,22 +20,24 @@ import java.io.IOException;
 public class LoginServlet extends HttpServlet {
 
     // FIXME: 15/11/12 Implements the access token service.
-    private AccessTokenService accessTokenService = new AccessTokenServiceMock();
+    private AccessTokenService accessTokenService = new AccessTokenService();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setCharacterEncoding("utf-8");
         try (JsonReader reader = Json.createReader(req.getInputStream())) {
             JsonObject info = reader.readObject();
 
             String username = info.getString("username");
             String password = info.getString("password");
 
-            if (accessTokenService.checkUserPassword(username, password)) {
+            User user = null;
+            if ((user = accessTokenService.checkUserPassword(username, password)) != null) {
                 resp.getOutputStream().println(
                         Json.createObjectBuilder()
-                                .add("user_id", 1)
-                                .add("username", username)
-                                .add("access_token", accessTokenService.generateAccessToken(username, password))
+                                .add("user_id", user.getId())
+                                .add("username", user.getName())
+                                .add("access_token", user.getAccessToken())
                                 .build()
                                 .toString()
                 );
@@ -50,8 +52,14 @@ public class LoginServlet extends HttpServlet {
                 );
             }
         } catch (Exception e) {
-            resp.setStatus(404);
-            resp.getOutputStream().println("Error 404 NotFound");
+            resp.setStatus(400);
+            resp.getOutputStream().println(
+                Json.createObjectBuilder()
+                        .add("code", "MALFORMED_JSON")
+                        .add("message", "格式错误")
+                        .build()
+                        .toString()
+            );
         }
     }
 
