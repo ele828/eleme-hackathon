@@ -1,4 +1,4 @@
 language: java
 script:
   - mvn clean install package
-  - java target/eleme-hackathon-2015-1.0-SNAPSHOT.jar
+  - java -jar target/eleme-hackathon-2015-1.0-SNAPSHOT.jar
