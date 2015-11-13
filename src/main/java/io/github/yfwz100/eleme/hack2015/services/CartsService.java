@@ -1,13 +1,17 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
+import io.github.yfwz100.eleme.hack2015.DatabasePool;
 import io.github.yfwz100.eleme.hack2015.Storage;
-import io.github.yfwz100.eleme.hack2015.exceptions.CartNotFoundException;
-import io.github.yfwz100.eleme.hack2015.exceptions.FoodNotFoundException;
-import io.github.yfwz100.eleme.hack2015.exceptions.FoodOutOfLimitException;
-import io.github.yfwz100.eleme.hack2015.exceptions.NoAccessToCartException;
+import io.github.yfwz100.eleme.hack2015.exceptions.*;
 import io.github.yfwz100.eleme.hack2015.models.Cart;
 import io.github.yfwz100.eleme.hack2015.models.Food;
+import io.github.yfwz100.eleme.hack2015.models.Order;
 import io.github.yfwz100.eleme.hack2015.models.User;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.UUID;
 
 /**
  * The mock of carts service.
@@ -35,19 +39,17 @@ public class CartsService {
             throw new NoAccessToCartException();
 
         Food food = foodsService.getFood(foodId);
+
         if (food == null)
             throw new FoodNotFoundException();
 
         if (!cart.checkAvailable(count))
             throw new FoodOutOfLimitException();
 
-        for (int i = 0; i < count; i++) {
-            boolean success = cart.addFood(food);
-            if (!success)
-                throw new FoodOutOfLimitException();
-        }
+        food.setCount(count);
+        boolean success = cart.addFood(food, count);
+        if (!success)
+            throw new FoodOutOfLimitException();
     }
 
-    public void generateOrder(String cartId)  {
-    }
 }

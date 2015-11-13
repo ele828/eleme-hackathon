@@ -1,5 +1,7 @@
 package io.github.yfwz100.eleme.hack2015.models;
 
+import io.github.yfwz100.eleme.hack2015.exceptions.OrderOutOfLimitException;
+
 /**
  * Created by Eric on 15/11/12.
  */
@@ -8,6 +10,7 @@ public class User {
     private String name;
     private String pass;
     private String accessToken;
+    private Order order;
 
     public User() {}
 
@@ -48,5 +51,17 @@ public class User {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+    }
+
+    public boolean canMakeOrder() {
+        return order == null;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
     }
 }

@@ -1,5 +1,6 @@
 package io.github.yfwz100.eleme.hack2015.models;
 
+
 import java.util.*;
 
 /**
@@ -8,21 +9,16 @@ import java.util.*;
  * @author yfwz100
  */
 public class Order {
-
     private String orderId;
-    private int userId;
-    private Map<Integer, Integer> items;
+    private User user;
+    private List<Food> items;
 
-    public Order() {
-        this(UUID.randomUUID().toString());
-    }
+    public Order() {}
 
-    public Order(String orderId) {
-        this(orderId, new HashMap<>());
-    }
-
-    public Order(String orderId, Map<Integer, Integer> items) {
+    public Order(User user, List<Food> items) {
+        orderId = UUID.randomUUID().toString();
         this.orderId = orderId;
+        this.user = user;
         this.items = items;
     }
 
@@ -34,31 +30,19 @@ public class Order {
         this.orderId = orderId;
     }
 
-    public Map<Integer, Integer> getItems() {
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public List<Food> getItems() {
         return items;
     }
 
-    public void setItems(Map<Integer, Integer> items) {
+    public void setItems(List<Food> items) {
         this.items = items;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public int getTotalItems() {
-        return items.values().stream().mapToInt(e -> e).sum();
-    }
-
-    @Override
-    public String toString() {
-        return "Order{" +
-                "orderId='" + orderId + '\'' +
-                ", items=" + items +
-                '}';
     }
 }

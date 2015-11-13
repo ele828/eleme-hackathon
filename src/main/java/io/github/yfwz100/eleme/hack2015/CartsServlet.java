@@ -28,7 +28,9 @@ public class CartsServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String accessToken = req.getParameter("access_token");
+        String accessToken = Utils.checkValidation(req, resp);
+        if( accessToken.equals("") )
+            return;
 
         User user = Storage.getUser(accessToken);
 

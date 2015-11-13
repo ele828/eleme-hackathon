@@ -31,17 +31,18 @@ public class AppServer {
         context.addServlet(HelloServlet.class, "/hello");
         context.addServlet(LoginServlet.class, "/login");
 
-//        context.addFilter(AccessTokenFilter.class, "/foods", EnumSet.of(DispatcherType.REQUEST));
+//        context.addFilter(EmptyRequestBodyFilter.class, "/foods", EnumSet.of(DispatcherType.REQUEST));
         context.addServlet(FoodsServlet.class, "/foods");
 
-        context.addFilter(AccessTokenFilter.class, "/carts", EnumSet.of(DispatcherType.REQUEST));
+//        context.addFilter(EmptyRequestBodyFilter.class, "/carts", EnumSet.of(DispatcherType.REQUEST));
         context.addServlet(CartsServlet.class, "/carts");
 
-        context.addFilter(AccessTokenFilter.class, "/carts/*", EnumSet.of(DispatcherType.REQUEST));
+//        context.addFilter(EmptyRequestBodyFilter.class, "/carts/*", EnumSet.of(DispatcherType.REQUEST));
         context.addServlet(NewFoodServlet.class, "/carts/*");
 
-        context.addFilter(AccessTokenFilter.class, "/orders*", EnumSet.of(DispatcherType.REQUEST));
+//        context.addFilter(EmptyRequestBodyFilter.class, "/orders*", EnumSet.of(DispatcherType.REQUEST));
         context.addServlet(OrderServlet.class, "/orders");
+        context.addServlet(OrderServlet.class, "/admin/orders");
 
         HandlerCollection handlers = new HandlerCollection();
         handlers.setHandlers(new Handler[]{context, new DefaultHandler()});

@@ -22,10 +22,10 @@ public class DatabasePool {
         ds.setUrl(url);
         ds.setUsername(Props.DB_USER);
         ds.setPassword(Props.DB_PASS);
-//        ds.setMaxWait(5000);
-//        ds.setInitialSize();
-//        ds.setMaxActive();
-//        ds.setMinIdle();
+        ds.setMaxWait(5000);
+        ds.setInitialSize(50);
+        ds.setMaxActive(100);
+        ds.setMinIdle(25);
     }
 
     public static DatabasePool getInstance() {

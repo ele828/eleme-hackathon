@@ -26,12 +26,17 @@ public class NewFoodServlet extends HttpServlet{
 
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setCharacterEncoding("utf-8");
+
+        String accessToken = Utils.checkValidation(req, resp);
+        if( accessToken.equals("") )
+            return;
+
         try (JsonReader reader = Json.createReader(req.getInputStream())) {
             JsonObject info = reader.readObject();
             int foodId = info.getInt("food_id");
             int count = info.getInt("count");
             String cartId = req.getRequestURI().replace("/carts/", "");
-            String accessToken = req.getParameter("access_token");
+
             cartsService.addFoodToCart(accessToken, cartId, foodId, count);
             resp.setStatus(204);
         } catch (IOException e) {

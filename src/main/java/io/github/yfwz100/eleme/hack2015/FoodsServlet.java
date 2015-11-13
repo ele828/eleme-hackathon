@@ -27,12 +27,9 @@ public class FoodsServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        if( !Utils.checkLogin(req, resp) )
+        String accessToken = Utils.checkValidation(req, resp);
+        if( accessToken.equals("") )
             return;
-
-        String accessToken = req.getParameter("access_token");
-        if(accessToken == null)
-            accessToken = req.getHeader("Access-Token");
 
         JsonArrayBuilder foods = Json.createArrayBuilder();
         for (Food food : foodsService.queryAvailableFoods()) {

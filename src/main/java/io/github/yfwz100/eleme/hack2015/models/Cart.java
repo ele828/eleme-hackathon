@@ -49,7 +49,7 @@ public class Cart {
         return true;
     }
 
-    public boolean addFood(Food food) {
+    public boolean addFood(Food food, int count) {
         if (food == null)
             return false;
         if (foods.size() >= maxSize)

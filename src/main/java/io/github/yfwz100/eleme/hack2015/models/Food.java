@@ -10,6 +10,7 @@ public class Food {
     private int id;
     private double price;
     private int stock;
+    private int count;
 
     public Food() {
     }
@@ -42,6 +43,14 @@ public class Food {
 
     public void setStock(int stock) {
         this.stock = stock;
+    }
+
+    public int getCount() {
+        return count;
+    }
+
+    public void setCount(int count) {
+        this.count = count;
     }
 
     @Override
