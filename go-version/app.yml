@@ -1,7 +1,3 @@
 language: go
 script:
-    - go get github.com/pquerna/ffjson/ffjson
-    - go get github.com/go-martini/martini
-    - go get github.com/go-sql-driver/mysql
-    - go build -o main ./
     - ./main

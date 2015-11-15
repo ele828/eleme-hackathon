@@ -7,7 +7,7 @@ Vagrant.configure(2) do |config|
 
   # config.vm.box_check_update = false
   config.vm.provider "virtualbox" do |vb|
-    vb.name = "eleme-hackathon-java"
+    vb.name = "eleme-hackathon-j"
     vb.cpus = 2
     vb.memory = "2048"
   end
@@ -16,7 +16,7 @@ Vagrant.configure(2) do |config|
     inline: "initctl emit vagrant-mounted",
     run: "always"
 
-  config.vm.network :forwarded_port, guest: 3306, host: 3306
+  config.vm.network :forwarded_port, guest: 3306, host: 1234
   config.vm.network :forwarded_port, guest: 6379, host: 6379
   config.vm.network :forwarded_port, guest: 8080, host: 8080
 

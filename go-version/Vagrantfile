@@ -9,7 +9,7 @@ Vagrant.configure(2) do |config|
   config.vm.provider "virtualbox" do |vb|
     vb.name = "eleme-hackathon"
     vb.cpus = 2
-    vb.memory = "1024"
+    vb.memory = "4096"
   end
 
   config.vm.provision "shell",
@@ -17,7 +17,7 @@ Vagrant.configure(2) do |config|
     run: "always"
 
   config.vm.network :forwarded_port, guest: 6379, host: 6379
-  config.vm.network :forwarded_port, guest: 3306, host: 1234
+  config.vm.network :forwarded_port, guest: 3306, host: 3306
   config.vm.network :forwarded_port, guest: 8080, host: 8080
 
 end
