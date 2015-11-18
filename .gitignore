@@ -1,6 +1,6 @@
 target
 .idea
 .vagrant
-app.log
-src/main/main.iml
-eleme-hackathon-2015.iml
+*.log
+*.iml
+*.pyc
