@@ -16,68 +16,46 @@ public class FoodsService {
     public List<Food> queryAvailableFoods() {
         List<Food> foods = new ArrayList<>();
 
-        DatabasePool pool = DatabasePool.getInstance();
-        Connection conn = null;
-        try {
-            conn = pool.getConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            Statement stmt = conn.createStatement();
-            ResultSet rs = stmt.executeQuery("select * from food;");
+        try (
+                Connection conn = DatabasePool.getConnection();
+                Statement stmt = conn.createStatement();
+                ResultSet rs = stmt.executeQuery("select * from food;");
+        ) {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 int stock = rs.getInt("stock");
                 double price = rs.getDouble("price");
                 foods.add(new Food(id, price, stock));
             }
-            stmt.close();
         } catch (Exception e) {
             e.printStackTrace();
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
 
         return foods;
     }
 
     public Food getFood(int foodId) {
-        DatabasePool pool = DatabasePool.getInstance();
-        Connection conn = null;
+        final String sql = "select * from food where id=?";
         Food food = null;
-        try {
-            conn = pool.getConnection();
-        } catch (SQLException e) {
+
+        try (
+                Connection conn = DatabasePool.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+        ) {
+            pstmt.setInt(1, foodId);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    int id = rs.getInt("id");
+                    int stock = rs.getInt("stock");
+                    double price = rs.getDouble("price");
+                    food = new Food(id, price, stock);
+                }
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        try {
-            String sql = "select * from food where id=?";
-            PreparedStatement pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, foodId);
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                int stock = rs.getInt("stock");
-                double price = rs.getDouble("price");
-                food = new Food(id, price, stock);
-            }
-            pstmt.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                conn.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
         return food;
     }
 

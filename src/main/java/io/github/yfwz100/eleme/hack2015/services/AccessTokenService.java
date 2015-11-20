@@ -1,11 +1,15 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
-import io.github.yfwz100.eleme.hack2015.database.DatabasePool;
 import io.github.yfwz100.eleme.hack2015.database.Cache;
+import io.github.yfwz100.eleme.hack2015.database.DatabasePool;
 import io.github.yfwz100.eleme.hack2015.exceptions.UserNotFoundException;
+import io.github.yfwz100.eleme.hack2015.models.AuthorizedUser;
 import io.github.yfwz100.eleme.hack2015.models.User;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -20,9 +24,8 @@ public class AccessTokenService {
     private static Map<String, User> userMap = new HashMap<>();
 
     static {
-        DatabasePool pool = DatabasePool.getInstance();
         try (
-                Connection conn = pool.getConnection();
+                Connection conn = DatabasePool.getConnection();
                 Statement stat = conn.createStatement();
                 ResultSet resultSet = stat.executeQuery("select * from user")
         ) {
@@ -40,25 +43,23 @@ public class AccessTokenService {
         }
     }
 
-    public User checkUserPassword(String username, String password) throws UserNotFoundException {
+    public AuthorizedUser checkUserPassword(String username, String password) throws UserNotFoundException {
         User user = userMap.get(username);
         if (user != null && user.getPass().equals(password)) {
             String accessToken = generateAccessToken();
-//            user.setAccessToken(accessToken);
-            User user1 =new User(user.getId(), username, password, accessToken);
-            Cache.addUser(accessToken, user1);
-            return user1;
+            AuthorizedUser authorizedUser = new AuthorizedUser(user, accessToken);
+            Cache.addUser(accessToken, authorizedUser);
+            return authorizedUser;
         } else {
             throw new UserNotFoundException();
         }
     }
 
-
     public String generateAccessToken() {
         return UUID.randomUUID().toString();
     }
 
-    public User checkAccessToken(String accessToken) {
+    public AuthorizedUser checkAccessToken(String accessToken) {
         return Cache.getUser(accessToken);
     }
 }

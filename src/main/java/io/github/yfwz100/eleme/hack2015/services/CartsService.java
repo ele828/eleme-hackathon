@@ -4,7 +4,7 @@ import io.github.yfwz100.eleme.hack2015.database.Cache;
 import io.github.yfwz100.eleme.hack2015.exceptions.*;
 import io.github.yfwz100.eleme.hack2015.models.Cart;
 import io.github.yfwz100.eleme.hack2015.models.Food;
-import io.github.yfwz100.eleme.hack2015.models.User;
+import io.github.yfwz100.eleme.hack2015.models.AuthorizedUser;
 
 /**
  * The mock of carts service.
@@ -15,8 +15,8 @@ public class CartsService {
 
     FoodsService foodsService = new FoodsService();
     public Cart createCart(String accessToken) {
-        User user = Cache.getUser(accessToken);
-        Cart cart = new Cart(user);
+        AuthorizedUser authorizedUser = Cache.getUser(accessToken);
+        Cart cart = new Cart(authorizedUser);
         Cache.addCart(cart);
         return cart;
     }

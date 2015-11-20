@@ -11,11 +11,13 @@ public class Cart {
     private final int maxSize = 3;
     private String cartId;
     private List<Food> foods = new ArrayList<>(3);
-    private User user;
+    private AuthorizedUser authorizedUser;
 
-    public Cart() {}
-    public Cart(User user) {
-        this.user = user;
+    public Cart() {
+    }
+
+    public Cart(AuthorizedUser authorizedUser) {
+        this.authorizedUser = authorizedUser;
         cartId = UUID.randomUUID().toString();
     }
 
@@ -35,26 +37,20 @@ public class Cart {
         this.foods = foods;
     }
 
-    public User getUser() {
-        return user;
+    public AuthorizedUser getUser() {
+        return authorizedUser;
     }
 
-    public void setUser(User user) {
-        user = user;
+    public void setUser(AuthorizedUser authorizedUser) {
+        authorizedUser = authorizedUser;
     }
 
     public boolean checkAvailable(int count) {
-        if (count + foods.size() > maxSize)
-            return false;
-        return true;
+        return count + foods.size() <= maxSize;
     }
 
     public boolean addFood(Food food, int count) {
-        if (food == null)
-            return false;
-        if (foods.size() >= maxSize)
-            return false;
-        return foods.add(food);
+        return food != null && foods.size() < maxSize && foods.add(food);
     }
 
 }

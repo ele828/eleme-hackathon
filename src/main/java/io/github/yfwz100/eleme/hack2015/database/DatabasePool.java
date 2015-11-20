@@ -10,10 +10,9 @@ import java.sql.SQLException;
  * @author Eric
  */
 public class DatabasePool {
-    private static DatabasePool instance = null;
-    private BasicDataSource ds = null;
+    private static BasicDataSource ds = null;
 
-    private DatabasePool(){
+    static {
         String url = String.format("jdbc:mysql://%s:%s/%s", Props.DB_HOST, Props.DB_PORT, Props.DB_NAME);
         ds = new BasicDataSource();
         ds.setDriverClassName("com.mysql.jdbc.Driver");
@@ -26,17 +25,11 @@ public class DatabasePool {
         ds.setMinIdle(25);
     }
 
-    public static DatabasePool getInstance() {
-        return instance == null
-                ? instance = new DatabasePool()
-                : instance;
-    }
-
-    public Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException {
         return ds.getConnection();
     }
 
-    public void close() throws SQLException {
+    public static void close() throws SQLException {
         ds.close();
     }
 

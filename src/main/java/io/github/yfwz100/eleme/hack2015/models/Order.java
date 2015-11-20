@@ -10,15 +10,15 @@ import java.util.*;
  */
 public class Order {
     private String orderId;
-    private User user;
+    private AuthorizedUser authorizedUser;
     private List<Food> items;
 
     public Order() {}
 
-    public Order(User user, List<Food> items) {
+    public Order(AuthorizedUser authorizedUser, List<Food> items) {
         orderId = UUID.randomUUID().toString();
         this.orderId = orderId;
-        this.user = user;
+        this.authorizedUser = authorizedUser;
         this.items = items;
     }
 
@@ -30,12 +30,12 @@ public class Order {
         this.orderId = orderId;
     }
 
-    public User getUser() {
-        return user;
+    public AuthorizedUser getAuthorizedUser() {
+        return authorizedUser;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setAuthorizedUser(AuthorizedUser authorizedUser) {
+        this.authorizedUser = authorizedUser;
     }
 
     public List<Food> getItems() {

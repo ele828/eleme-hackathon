@@ -34,7 +34,7 @@ from multiprocessing import Process
 
 KEY_PREFIX = "stress_test:make_order"
 
-USER_KEY = "{}:user".format(KEY_PREFIX)
+USER_KEY = "{}:authorizedUser".format(KEY_PREFIX)
 
 SUCCESS_KEY = "{}:success".format(KEY_PREFIX)
 FAILURE_KEY = "{}:failure".format(KEY_PREFIX)
@@ -56,7 +56,7 @@ users, foods = {}, []
 def db_query():
     db = pymysql.connect(host=os.getenv("DB_HOST", "localhost"),
                          port=int(os.getenv("DB_PORT", 3306)),
-                         user=os.getenv("DB_USER", "root"),
+                         authorizedUser=os.getenv("DB_USER", "root"),
                          passwd=os.getenv("DB_PASS", "toor"),
                          db=os.getenv("DB_NAME", "eleme"))
     try:
@@ -71,7 +71,7 @@ def load_users():
         cur = db.cursor()
 
         # load users
-        cur.execute("SELECT id, name, password FROM user")
+        cur.execute("SELECT id, name, password FROM authorizedUser")
 
         for i, name, pw in cur.fetchall():
             users[i] = {"username": name, "password": pw}
@@ -167,8 +167,8 @@ class Query(object):
             return False
 
         self.user_id = int(user_id)
-        user = users[self.user_id]
-        return self._do_login(user["username"], user["password"])
+        authorizedUser = users[self.user_id]
+        return self._do_login(authorizedUser["username"], authorizedUser["password"])
 
     def get_foods(self):
         res = self.request("GET", self.url("/foods"))

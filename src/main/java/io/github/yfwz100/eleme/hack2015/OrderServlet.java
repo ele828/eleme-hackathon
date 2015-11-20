@@ -6,8 +6,6 @@ import io.github.yfwz100.eleme.hack2015.exceptions.NoAccessToCartException;
 import io.github.yfwz100.eleme.hack2015.exceptions.OrderOutOfLimitException;
 import io.github.yfwz100.eleme.hack2015.models.Food;
 import io.github.yfwz100.eleme.hack2015.models.Order;
-import io.github.yfwz100.eleme.hack2015.models.User;
-import io.github.yfwz100.eleme.hack2015.services.CartsService;
 import io.github.yfwz100.eleme.hack2015.services.OrdersService;
 
 import javax.json.*;
@@ -17,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Map;
 
 /**
  * Created by Eric on 15/11/12.
@@ -136,7 +133,7 @@ public class OrderServlet extends HttpServlet {
         jOrders.add(
                 Json.createObjectBuilder()
                         .add("id", order.getOrderId())
-                        .add("user_id", order.getUser().getId())
+                        .add("user_id", order.getAuthorizedUser().getUser().getId())
                         .add("items", jsonArrayBuilder)
                         .add("total", total)
                         .build()
