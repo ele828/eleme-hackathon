@@ -1,5 +1,6 @@
-package io.github.yfwz100.eleme.hack2015;
+package io.github.yfwz100.eleme.hack2015.database;
 
+import io.github.yfwz100.eleme.hack2015.util.Props;
 import org.apache.commons.dbcp.BasicDataSource;
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -1,11 +1,10 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
-import io.github.yfwz100.eleme.hack2015.DatabasePool;
+import io.github.yfwz100.eleme.hack2015.database.DatabasePool;
 import io.github.yfwz100.eleme.hack2015.models.Food;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
