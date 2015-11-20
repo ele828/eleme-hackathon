@@ -28,10 +28,7 @@ public class OrderServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-        String accessToken = Utils.checkValidation(req, resp);
-        if( accessToken.equals("") )
-            return;
+        String accessToken = req.getAttribute(AccessTokenFilter.ACCESSTOKEN).toString();
 
         resp.setCharacterEncoding("utf-8");
         try (JsonReader reader = Json.createReader(req.getInputStream())) {
@@ -110,9 +107,7 @@ public class OrderServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String accessToken = Utils.checkValidation(req, resp);
-        if( accessToken.equals("") )
-            return;
+        String accessToken = req.getAttribute(AccessTokenFilter.ACCESSTOKEN).toString();
 
         JsonArrayBuilder jOrders = Json.createArrayBuilder();
         JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
@@ -147,6 +142,5 @@ public class OrderServlet extends HttpServlet {
                         .build()
         );
         resp.getOutputStream().println(jOrders.build().toString());
-
     }
 }

@@ -14,6 +14,12 @@ public class User {
 
     public User() {}
 
+    public User(int id, String name, String pass) {
+        this.id = id;
+        this.name = name;
+        this.pass = pass;
+    }
+
     public User(int id, String name, String pass, String accessToken) {
         this.id = id;
         this.name = name;

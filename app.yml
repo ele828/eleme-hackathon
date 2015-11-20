@@ -1,4 +1,4 @@
 language: java
 script:
   - mvn clean install package
-  - java -Dcom.sun.management.jmxremote.port=8889 -Dcom.sun.management.jmxremote.rmi.port=8888 -Dcom.sun.management.jmxremote=true -Djava.rmi.server.hostname=localhost -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -XX:+UnlockCommercialFeatures -XX:+FlightRecorder -jar target/eleme-hackathon-2015-1.0-SNAPSHOT.jar
+  - java -Dcom.sun.management.jmxremote.port=8889 -Dcom.sun.management.jmxremote.rmi.port=8888 -Dcom.sun.management.jmxremote=true -Djava.rmi.server.hostname=localhost -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -jar target/eleme-hackathon-2015-1.0-SNAPSHOT.jar

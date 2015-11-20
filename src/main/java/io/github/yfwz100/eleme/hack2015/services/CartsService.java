@@ -1,17 +1,10 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
-import io.github.yfwz100.eleme.hack2015.DatabasePool;
-import io.github.yfwz100.eleme.hack2015.Storage;
+import io.github.yfwz100.eleme.hack2015.database.Cache;
 import io.github.yfwz100.eleme.hack2015.exceptions.*;
 import io.github.yfwz100.eleme.hack2015.models.Cart;
 import io.github.yfwz100.eleme.hack2015.models.Food;
-import io.github.yfwz100.eleme.hack2015.models.Order;
 import io.github.yfwz100.eleme.hack2015.models.User;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.UUID;
 
 /**
  * The mock of carts service.
@@ -22,16 +15,16 @@ public class CartsService {
 
     FoodsService foodsService = new FoodsService();
     public Cart createCart(String accessToken) {
-        User user = Storage.getUser(accessToken);
+        User user = Cache.getUser(accessToken);
         Cart cart = new Cart(user);
-        Storage.addCart(cart);
+        Cache.addCart(cart);
         return cart;
     }
 
     public void addFoodToCart(String accessToken, String cartId, int foodId, int count)
             throws FoodOutOfLimitException, FoodNotFoundException, CartNotFoundException, NoAccessToCartException {
 
-        Cart cart = Storage.getCart(cartId);
+        Cart cart = Cache.getCart(cartId);
         if (cart == null)
             throw new CartNotFoundException();
 

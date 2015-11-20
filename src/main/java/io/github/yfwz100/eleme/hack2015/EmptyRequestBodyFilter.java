@@ -15,7 +15,6 @@ public class EmptyRequestBodyFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-
         System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>middle ware");
         if (request.getInputStream().available() > 0) {
             chain.doFilter(request, response);

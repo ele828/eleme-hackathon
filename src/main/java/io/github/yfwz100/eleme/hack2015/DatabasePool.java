@@ -13,10 +13,7 @@ public class DatabasePool {
     private BasicDataSource ds = null;
 
     private DatabasePool(){
-        String url = "jdbc:mysql://"
-                + Props.DB_HOST + ":"
-                + Props.DB_PORT + "/"
-                + Props.DB_NAME;
+        String url = String.format("jdbc:mysql://%s:%s/%s", Props.DB_HOST, Props.DB_PORT, Props.DB_NAME);
         ds = new BasicDataSource();
         ds.setDriverClassName("com.mysql.jdbc.Driver");
         ds.setUrl(url);

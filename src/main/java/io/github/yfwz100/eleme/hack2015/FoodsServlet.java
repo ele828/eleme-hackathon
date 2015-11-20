@@ -20,17 +20,10 @@ import java.io.IOException;
 @WebServlet(urlPatterns = "/foods")
 public class FoodsServlet extends HttpServlet {
 
-    // FIXME: 15/11/12 Implement the foods service.
     private FoodsService foodsService = new FoodsService();
-    private AccessTokenService accessTokenService = new AccessTokenService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-        String accessToken = Utils.checkValidation(req, resp);
-        if( accessToken.equals("") )
-            return;
-
         JsonArrayBuilder foods = Json.createArrayBuilder();
         for (Food food : foodsService.queryAvailableFoods()) {
             foods.add(

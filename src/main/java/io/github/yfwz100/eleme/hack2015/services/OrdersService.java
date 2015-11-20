@@ -1,7 +1,7 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
 import io.github.yfwz100.eleme.hack2015.DatabasePool;
-import io.github.yfwz100.eleme.hack2015.Storage;
+import io.github.yfwz100.eleme.hack2015.database.Cache;
 import io.github.yfwz100.eleme.hack2015.exceptions.CartNotFoundException;
 import io.github.yfwz100.eleme.hack2015.exceptions.FoodOutOfStockException;
 import io.github.yfwz100.eleme.hack2015.exceptions.NoAccessToCartException;
@@ -14,7 +14,6 @@ import io.github.yfwz100.eleme.hack2015.models.User;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,7 +26,7 @@ public class OrdersService {
     public Order generateOrder(String accessToken, String cartId)
             throws CartNotFoundException, NoAccessToCartException, SQLException, FoodOutOfStockException, OrderOutOfLimitException {
 
-        Cart cart = Storage.getCart(cartId);
+        Cart cart = Cache.getCart(cartId);
         if (!cart.getUser().canMakeOrder())
             throw new OrderOutOfLimitException();
 
@@ -56,7 +55,7 @@ public class OrdersService {
             conn.commit();
 
             order = new Order(cart.getUser(), cart.getFoods());
-            Storage.addOrder(order);
+            Cache.addOrder(order);
             cart.getUser().setOrder(order);
         } catch (Exception e) {
             // Roll back
@@ -71,11 +70,11 @@ public class OrdersService {
     }
 
     public Map<String, Order> gerOrders() {
-        return Storage.getOrders();
+        return Cache.getOrders();
     }
 
     public Order getOrder(String accessToken) {
-        User user = Storage.getUser(accessToken);
+        User user = Cache.getUser(accessToken);
         if (user == null)
             return null;
         return user.getOrder();

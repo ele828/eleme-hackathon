@@ -1,6 +1,5 @@
 package io.github.yfwz100.eleme.hack2015;
 
-import io.github.yfwz100.eleme.hack2015.services.OrdersService;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -22,26 +21,33 @@ public class AppServer {
     public static void main(String... args) throws Exception {
         Server server = new Server();
         ServerConnector connector = new ServerConnector(server);
-        connector.setPort(8080);
+        connector.setHost(Props.APP_HOST);
+        connector.setPort(Props.APP_PORT);
         server.setConnectors(new Connector[]{connector});
         ServletContextHandler context = new ServletContextHandler();
 
         context.setContextPath("/");
 
-        context.addServlet(HelloServlet.class, "/hello");
+        context.addFilter(EmptyRequestBodyFilter.class, "/login", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
         context.addServlet(LoginServlet.class, "/login");
 
-//        context.addFilter(EmptyRequestBodyFilter.class, "/foods", EnumSet.of(DispatcherType.REQUEST));
+        context.addFilter(AccessTokenFilter.class, "/foods", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+//        context.addFilter(EmptyRequestBodyFilter.class, "/foods", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
         context.addServlet(FoodsServlet.class, "/foods");
 
-//        context.addFilter(EmptyRequestBodyFilter.class, "/carts", EnumSet.of(DispatcherType.REQUEST));
+        context.addFilter(AccessTokenFilter.class, "/carts", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+//        context.addFilter(EmptyRequestBodyFilter.class, "/carts", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
         context.addServlet(CartsServlet.class, "/carts");
 
-//        context.addFilter(EmptyRequestBodyFilter.class, "/carts/*", EnumSet.of(DispatcherType.REQUEST));
-        context.addServlet(NewFoodServlet.class, "/carts/*");
+        context.addFilter(AccessTokenFilter.class, "/carts/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+//        context.addFilter(EmptyRequestBodyFilter.class, "/carts/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+        context.addServlet(AddFoodServlet.class, "/carts/*");
 
-//        context.addFilter(EmptyRequestBodyFilter.class, "/orders*", EnumSet.of(DispatcherType.REQUEST));
+        context.addFilter(AccessTokenFilter.class, "/orders", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+//        context.addFilter(EmptyRequestBodyFilter.class, "/orders", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
         context.addServlet(OrderServlet.class, "/orders");
+
+        context.addFilter(AccessTokenFilter.class, "/admin/orders", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
         context.addServlet(OrderServlet.class, "/admin/orders");
 
         HandlerCollection handlers = new HandlerCollection();

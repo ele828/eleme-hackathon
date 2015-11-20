@@ -2,7 +2,9 @@ package io.github.yfwz100.eleme.hack2015;
 
 import io.github.yfwz100.eleme.hack2015.services.AccessTokenService;
 
+import javax.json.Json;
 import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
@@ -13,7 +15,7 @@ import java.io.IOException;
  */
 public class AccessTokenFilter implements Filter {
 
-    // FIXME: 15/11/12 Implement the access token service.
+    public static String ACCESSTOKEN = "actk";
     private AccessTokenService accessTokenService = new AccessTokenService();
 
     @Override
@@ -22,14 +24,28 @@ public class AccessTokenFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        String accessToken = request.getParameter("access_token");
-//        if(accessToken.equals(""))
-//            accessToken = request.getHeader("Access-Token");
+        HttpServletRequest req = ((HttpServletRequest) request);
+        HttpServletResponse resp = ((HttpServletResponse) response);
+        resp.setCharacterEncoding("utf-8");
 
-        if (accessTokenService.checkAccessToken(accessToken) != null) {
+        String accessToken = request.getParameter("access_token");
+        if (accessToken == null || accessToken.isEmpty()) {
+            accessToken = req.getHeader("Access-Token");
+            System.out.println(req.getRequestURI() + ": " + accessToken);
+        }
+        req.setAttribute(ACCESSTOKEN, accessToken);
+
+        if (accessToken != null && accessTokenService.checkAccessToken(accessToken) != null) {
             chain.doFilter(request, response);
         } else {
-            ((HttpServletResponse) response).sendError(403);
+            resp.setStatus(401);
+            resp.getOutputStream().println(
+                    Json.createObjectBuilder()
+                            .add("code", "INVALID_ACCESS_TOKEN")
+                            .add("message", "无效的令牌")
+                            .build()
+                            .toString()
+            );
         }
     }
 

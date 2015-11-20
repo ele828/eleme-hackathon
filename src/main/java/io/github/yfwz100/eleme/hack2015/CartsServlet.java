@@ -1,5 +1,6 @@
 package io.github.yfwz100.eleme.hack2015;
 
+import io.github.yfwz100.eleme.hack2015.database.Cache;
 import io.github.yfwz100.eleme.hack2015.models.Cart;
 import io.github.yfwz100.eleme.hack2015.models.User;
 import io.github.yfwz100.eleme.hack2015.services.CartsService;
@@ -18,7 +19,6 @@ import java.io.IOException;
  */
 public class CartsServlet extends HttpServlet {
 
-    // FIXME: 15/11/12 Implement carts service.
     private CartsService cartsService = new CartsService();
 
     @Override
@@ -28,14 +28,12 @@ public class CartsServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String accessToken = Utils.checkValidation(req, resp);
-        if( accessToken.equals("") )
-            return;
+        String accessToken = req.getAttribute(AccessTokenFilter.ACCESSTOKEN).toString();
 
-        User user = Storage.getUser(accessToken);
+        User user = Cache.getUser(accessToken);
 
         Cart cart = new Cart(user);
-        Storage.addCart(cart);
+        Cache.addCart(cart);
 
         resp.getOutputStream().println(
                 Json.createObjectBuilder()
