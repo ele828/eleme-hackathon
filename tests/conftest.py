@@ -28,7 +28,7 @@ def conf():
 def conn():
     return pymysql.connect(host=os.getenv("DB_HOST", "localhost"),
                            port=int(os.getenv("DB_PORT", 3306)),
-                           authorizedUser=os.getenv("DB_USER", "root"),
+                           user=os.getenv("DB_USER", "root"),
                            passwd=os.getenv("DB_PASS", "toor"),
                            db=os.getenv("DB_NAME", "eleme"),
                            cursorclass=pymysql.cursors.DictCursor,
@@ -73,7 +73,7 @@ def token(get_token, username, password):
 def tokens(conn, get_token, username):
     users = []
     c = conn.cursor()
-    c.execute("SELECT name, password FROM `authorizedUser` "
+    c.execute("SELECT name, password FROM `user` "
               "WHERE name <> %s", (username,))
     users = c.fetchall()
     c.close()

@@ -6,7 +6,7 @@ import io.github.yfwz100.eleme.hack2015.exceptions.CartNotFoundException;
 import io.github.yfwz100.eleme.hack2015.exceptions.FoodOutOfStockException;
 import io.github.yfwz100.eleme.hack2015.exceptions.NoAccessToCartException;
 import io.github.yfwz100.eleme.hack2015.exceptions.OrderOutOfLimitException;
-import io.github.yfwz100.eleme.hack2015.models.AuthorizedUser;
+import io.github.yfwz100.eleme.hack2015.models.Session;
 import io.github.yfwz100.eleme.hack2015.models.Cart;
 import io.github.yfwz100.eleme.hack2015.models.Food;
 import io.github.yfwz100.eleme.hack2015.models.Order;
@@ -14,7 +14,6 @@ import io.github.yfwz100.eleme.hack2015.models.Order;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Map;
 
 /**
  * The services for orders.
@@ -67,10 +66,10 @@ public class OrdersService {
     }
 
     public Order getOrder(String accessToken) {
-        AuthorizedUser authorizedUser = Cache.getUser(accessToken);
-        if (authorizedUser == null)
+        Session session = Cache.getUser(accessToken);
+        if (session == null)
             return null;
-        return authorizedUser.getOrder();
+        return session.getOrder();
     }
 
 }

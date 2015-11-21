@@ -11,13 +11,13 @@ public class Cart {
     private final int maxSize = 3;
     private String cartId;
     private List<Food> foods = new ArrayList<>(3);
-    private AuthorizedUser authorizedUser;
+    private Session session;
 
     public Cart() {
     }
 
-    public Cart(AuthorizedUser authorizedUser) {
-        this.authorizedUser = authorizedUser;
+    public Cart(Session session) {
+        this.session = session;
         cartId = UUID.randomUUID().toString();
     }
 
@@ -37,12 +37,12 @@ public class Cart {
         this.foods = foods;
     }
 
-    public AuthorizedUser getUser() {
-        return authorizedUser;
+    public Session getUser() {
+        return session;
     }
 
-    public void setUser(AuthorizedUser authorizedUser) {
-        authorizedUser = authorizedUser;
+    public void setUser(Session session) {
+        session = session;
     }
 
     public boolean checkAvailable(int count) {

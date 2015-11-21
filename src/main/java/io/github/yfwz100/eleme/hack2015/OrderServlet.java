@@ -133,7 +133,7 @@ public class OrderServlet extends HttpServlet {
         jOrders.add(
                 Json.createObjectBuilder()
                         .add("id", order.getOrderId())
-                        .add("user_id", order.getAuthorizedUser().getUser().getId())
+                        .add("user_id", order.getSession().getUser().getId())
                         .add("items", jsonArrayBuilder)
                         .add("total", total)
                         .build()

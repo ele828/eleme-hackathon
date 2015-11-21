@@ -1,7 +1,7 @@
 package io.github.yfwz100.eleme.hack2015;
 
 import io.github.yfwz100.eleme.hack2015.exceptions.UserNotFoundException;
-import io.github.yfwz100.eleme.hack2015.models.AuthorizedUser;
+import io.github.yfwz100.eleme.hack2015.models.Session;
 import io.github.yfwz100.eleme.hack2015.services.AccessTokenService;
 
 import javax.json.Json;
@@ -33,13 +33,13 @@ public class LoginServlet extends HttpServlet {
             String username = info.getString("username");
             String password = info.getString("password");
 
-            AuthorizedUser authorizedUser = accessTokenService.checkUserPassword(username, password);
+            Session session = accessTokenService.checkUserPassword(username, password);
 
             resp.getOutputStream().println(
                     Json.createObjectBuilder()
-                            .add("user_id", authorizedUser.getUser().getId())
-                            .add("username", authorizedUser.getUser().getName())
-                            .add("access_token", authorizedUser.getAccessToken())
+                            .add("user_id", session.getUser().getId())
+                            .add("username", session.getUser().getName())
+                            .add("access_token", session.getAccessToken())
                             .build()
                             .toString()
             );

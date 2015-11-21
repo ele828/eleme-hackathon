@@ -7,13 +7,13 @@ import io.github.yfwz100.eleme.hack2015.exceptions.OrderOutOfLimitException;
  *
  * @author yfwz100
  */
-public class AuthorizedUser {
+public class Session {
 
     private User user;
     private String accessToken;
     private Order order;
 
-    public AuthorizedUser(User user, String accessToken) {
+    public Session(User user, String accessToken) {
         this.user = user;
         this.accessToken = accessToken;
     }

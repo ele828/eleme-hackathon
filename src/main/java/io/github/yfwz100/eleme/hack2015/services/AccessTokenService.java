@@ -3,7 +3,7 @@ package io.github.yfwz100.eleme.hack2015.services;
 import io.github.yfwz100.eleme.hack2015.database.Cache;
 import io.github.yfwz100.eleme.hack2015.database.DatabasePool;
 import io.github.yfwz100.eleme.hack2015.exceptions.UserNotFoundException;
-import io.github.yfwz100.eleme.hack2015.models.AuthorizedUser;
+import io.github.yfwz100.eleme.hack2015.models.Session;
 import io.github.yfwz100.eleme.hack2015.models.User;
 
 import java.sql.Connection;
@@ -43,13 +43,13 @@ public class AccessTokenService {
         }
     }
 
-    public AuthorizedUser checkUserPassword(String username, String password) throws UserNotFoundException {
+    public Session checkUserPassword(String username, String password) throws UserNotFoundException {
         User user = userMap.get(username);
         if (user != null && user.getPass().equals(password)) {
             String accessToken = generateAccessToken();
-            AuthorizedUser authorizedUser = new AuthorizedUser(user, accessToken);
-            Cache.addUser(accessToken, authorizedUser);
-            return authorizedUser;
+            Session session = new Session(user, accessToken);
+            Cache.addUser(accessToken, session);
+            return session;
         } else {
             throw new UserNotFoundException();
         }
@@ -59,7 +59,7 @@ public class AccessTokenService {
         return UUID.randomUUID().toString();
     }
 
-    public AuthorizedUser checkAccessToken(String accessToken) {
+    public Session checkAccessToken(String accessToken) {
         return Cache.getUser(accessToken);
     }
 }

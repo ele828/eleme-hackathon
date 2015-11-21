@@ -2,7 +2,7 @@ package io.github.yfwz100.eleme.hack2015.database;
 
 import io.github.yfwz100.eleme.hack2015.models.Cart;
 import io.github.yfwz100.eleme.hack2015.models.Order;
-import io.github.yfwz100.eleme.hack2015.models.AuthorizedUser;
+import io.github.yfwz100.eleme.hack2015.models.Session;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,15 +11,15 @@ import java.util.Map;
  * Created by Eric on 15/11/12.
  */
 public class Cache {
-    private static Map<String, AuthorizedUser> userMap = new HashMap<>();
+    private static Map<String, Session> userMap = new HashMap<>();
     private static Map<String, Cart> cartMap = new HashMap<>();
     private static Map<String, Order> orderMap = new HashMap<>();
 
-    public static void addUser(String accessToken, AuthorizedUser authorizedUser) {
-        userMap.put(accessToken, authorizedUser);
+    public static void addUser(String accessToken, Session session) {
+        userMap.put(accessToken, session);
     }
 
-    public static AuthorizedUser getUser(String accessToken) {
+    public static Session getUser(String accessToken) {
         return userMap.get(accessToken);
     }
 

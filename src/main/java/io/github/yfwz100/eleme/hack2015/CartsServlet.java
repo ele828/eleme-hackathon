@@ -2,7 +2,7 @@ package io.github.yfwz100.eleme.hack2015;
 
 import io.github.yfwz100.eleme.hack2015.database.Cache;
 import io.github.yfwz100.eleme.hack2015.models.Cart;
-import io.github.yfwz100.eleme.hack2015.models.AuthorizedUser;
+import io.github.yfwz100.eleme.hack2015.models.Session;
 import io.github.yfwz100.eleme.hack2015.services.CartsService;
 
 import javax.json.Json;
@@ -30,9 +30,9 @@ public class CartsServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String accessToken = req.getAttribute(AccessTokenFilter.ACCESSTOKEN).toString();
 
-        AuthorizedUser authorizedUser = Cache.getUser(accessToken);
+        Session session = Cache.getUser(accessToken);
 
-        Cart cart = new Cart(authorizedUser);
+        Cart cart = new Cart(session);
         Cache.addCart(cart);
 
         resp.getOutputStream().println(
