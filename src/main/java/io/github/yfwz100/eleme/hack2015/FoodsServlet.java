@@ -1,8 +1,8 @@
 package io.github.yfwz100.eleme.hack2015;
 
 import io.github.yfwz100.eleme.hack2015.models.Food;
-import io.github.yfwz100.eleme.hack2015.services.AccessTokenService;
 import io.github.yfwz100.eleme.hack2015.services.FoodsService;
+import io.github.yfwz100.eleme.hack2015.services.memory.FoodsServiceImpl;
 
 import javax.json.*;
 import javax.servlet.ServletException;
@@ -20,7 +20,7 @@ import java.io.IOException;
 @WebServlet(urlPatterns = "/foods")
 public class FoodsServlet extends HttpServlet {
 
-    private FoodsService foodsService = new FoodsService();
+    private FoodsService foodsService = FoodsServiceImpl.getInstance();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

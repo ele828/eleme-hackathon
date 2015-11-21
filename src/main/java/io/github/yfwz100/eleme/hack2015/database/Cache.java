@@ -8,18 +8,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by Eric on 15/11/12.
+ * The cache layer.
+ *
+ * @author eric
  */
 public class Cache {
     private static Map<String, Session> userMap = new HashMap<>();
     private static Map<String, Cart> cartMap = new HashMap<>();
     private static Map<String, Order> orderMap = new HashMap<>();
 
-    public static void addUser(String accessToken, Session session) {
+    public static void addSession(String accessToken, Session session) {
         userMap.put(accessToken, session);
     }
 
-    public static Session getUser(String accessToken) {
+    public static Session getSession(String accessToken) {
         return userMap.get(accessToken);
     }
 

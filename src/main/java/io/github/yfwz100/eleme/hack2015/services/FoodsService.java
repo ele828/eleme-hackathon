@@ -1,62 +1,38 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
-import io.github.yfwz100.eleme.hack2015.database.DatabasePool;
 import io.github.yfwz100.eleme.hack2015.models.Food;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfStockException;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 
 /**
- * Foods service.
+ * The service interface for foods.
  *
  * @author yfwz100
  */
-public class FoodsService {
-    public List<Food> queryAvailableFoods() {
-        List<Food> foods = new ArrayList<>();
+public interface FoodsService {
 
-        try (
-                Connection conn = DatabasePool.getConnection();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery("select * from food;");
-        ) {
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                int stock = rs.getInt("stock");
-                double price = rs.getDouble("price");
-                foods.add(new Food(id, price, stock));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    /**
+     * Query the available foods.
+     *
+     * @return the collection of food.
+     */
+    Collection<Food> queryAvailableFoods();
 
-        return foods;
-    }
+    /**
+     * Get food by id.
+     *
+     * @param foodId the id of food.
+     * @return the food.
+     */
+    Food getFood(int foodId);
 
-    public Food getFood(int foodId) {
-        final String sql = "select * from food where id=?";
-        Food food = null;
-
-        try (
-                Connection conn = DatabasePool.getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql);
-        ) {
-            pstmt.setInt(1, foodId);
-
-            try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    int id = rs.getInt("id");
-                    int stock = rs.getInt("stock");
-                    double price = rs.getDouble("price");
-                    food = new Food(id, price, stock);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return food;
-    }
-
+    /**
+     * Consume the food.
+     *
+     * @param foodId   the id of food.
+     * @param quantity the quantity.
+     * @return the quantity actually consumed.
+     */
+    int consumeFood(int foodId, int quantity) throws FoodOutOfStockException;
 }

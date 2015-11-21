@@ -9,40 +9,26 @@ import java.util.*;
  * @author yfwz100
  */
 public class Order {
-    private String orderId;
-    private Session session;
-    private List<Food> items;
 
-    public Order() {}
+    private final String orderId;
+    private final Map<Integer, Integer> menu;
+    private final User user;
 
-    public Order(Session session, List<Food> items) {
-        orderId = UUID.randomUUID().toString();
-        this.orderId = orderId;
-        this.session = session;
-        this.items = items;
+    public Order(User user, Map<Integer, Integer> menu) {
+        this.orderId = UUID.randomUUID().toString();
+        this.menu = menu;
+        this.user = user;
     }
 
     public String getOrderId() {
         return orderId;
     }
 
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
+    public Map<Integer, Integer> getMenu() {
+        return menu;
     }
 
-    public Session getSession() {
-        return session;
-    }
-
-    public void setSession(Session session) {
-        this.session = session;
-    }
-
-    public List<Food> getItems() {
-        return items;
-    }
-
-    public void setItems(List<Food> items) {
-        this.items = items;
+    public User getUser() {
+        return user;
     }
 }

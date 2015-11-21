@@ -1,12 +1,12 @@
 package io.github.yfwz100.eleme.hack2015;
 
 import io.github.yfwz100.eleme.hack2015.database.Cache;
-import io.github.yfwz100.eleme.hack2015.exceptions.CartNotFoundException;
-import io.github.yfwz100.eleme.hack2015.exceptions.FoodNotFoundException;
-import io.github.yfwz100.eleme.hack2015.exceptions.FoodOutOfLimitException;
-import io.github.yfwz100.eleme.hack2015.exceptions.NoAccessToCartException;
-import io.github.yfwz100.eleme.hack2015.services.AccessTokenService;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.CartNotFoundException;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodNotFoundException;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfLimitException;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.NoAccessToCartException;
 import io.github.yfwz100.eleme.hack2015.services.CartsService;
+import io.github.yfwz100.eleme.hack2015.services.memory.CartsServiceImpl;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -24,10 +24,10 @@ import java.io.IOException;
  */
 public class AddFoodServlet extends HttpServlet {
 
-    CartsService cartsService = new CartsService();
+    CartsService cartsService = CartsServiceImpl.getInstance();
 
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String accessToken = req.getAttribute(AccessTokenFilter.ACCESSTOKEN).toString();
+        String accessToken = req.getAttribute(AccessTokenFilter.ACCESS_TOKEN).toString();
 
         try (JsonReader reader = Json.createReader(req.getInputStream())) {
             JsonObject info = reader.readObject();
@@ -44,7 +44,7 @@ public class AddFoodServlet extends HttpServlet {
             resp.getOutputStream().println("Error" + e.getMessage());
         } catch (NoAccessToCartException ex) {
             resp.setStatus(401);
-            System.out.println(Cache.getUser(accessToken).getAccessToken() + "////" + accessToken);
+            System.out.println(Cache.getSession(accessToken).getAccessToken() + "////" + accessToken);
             resp.getOutputStream().println(
                     Json.createObjectBuilder()
                             .add("code", "NOT_AUTHORIZED_TO_ACCESS_CART")

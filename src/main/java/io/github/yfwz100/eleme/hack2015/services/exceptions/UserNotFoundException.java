@@ -1,4 +1,4 @@
-package io.github.yfwz100.eleme.hack2015.exceptions;
+package io.github.yfwz100.eleme.hack2015.services.exceptions;
 
 /**
  * The exception thrown when user is not found.

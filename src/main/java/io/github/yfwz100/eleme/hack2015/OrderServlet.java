@@ -1,31 +1,38 @@
 package io.github.yfwz100.eleme.hack2015;
 
-import io.github.yfwz100.eleme.hack2015.exceptions.CartNotFoundException;
-import io.github.yfwz100.eleme.hack2015.exceptions.FoodOutOfStockException;
-import io.github.yfwz100.eleme.hack2015.exceptions.NoAccessToCartException;
-import io.github.yfwz100.eleme.hack2015.exceptions.OrderOutOfLimitException;
-import io.github.yfwz100.eleme.hack2015.models.Food;
 import io.github.yfwz100.eleme.hack2015.models.Order;
+import io.github.yfwz100.eleme.hack2015.services.FoodsService;
 import io.github.yfwz100.eleme.hack2015.services.OrdersService;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.CartNotFoundException;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfStockException;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.NoAccessToCartException;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.OrderOutOfLimitException;
+import io.github.yfwz100.eleme.hack2015.services.memory.FoodsServiceImpl;
+import io.github.yfwz100.eleme.hack2015.services.memory.OrdersServiceImpl;
 
-import javax.json.*;
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.SQLException;
 
 /**
- * Created by Eric on 15/11/12.
+ * The order servlet.
+ *
+ * @author eric
  */
 public class OrderServlet extends HttpServlet {
 
-    private OrdersService orderService = new OrdersService();
+    private OrdersService orderService = OrdersServiceImpl.getInstance();
+    private FoodsService foodsService = FoodsServiceImpl.getInstance();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String accessToken = req.getAttribute(AccessTokenFilter.ACCESSTOKEN).toString();
+        String accessToken = req.getAttribute(AccessTokenFilter.ACCESS_TOKEN).toString();
 
         resp.setCharacterEncoding("utf-8");
         try (JsonReader reader = Json.createReader(req.getInputStream())) {
@@ -79,15 +86,6 @@ public class OrderServlet extends HttpServlet {
                             .build()
                             .toString()
             );
-        } catch(SQLException e) {
-            resp.setStatus(400);
-            resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "DATABASE_ERROR")
-                            .add("message", "数据库错误" + e.getMessage())
-                            .build()
-                            .toString()
-            );
         } catch (Exception e) {
             resp.setStatus(400);
             System.out.println("格式错误: " + e.getMessage());
@@ -104,40 +102,35 @@ public class OrderServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String accessToken = req.getAttribute(AccessTokenFilter.ACCESSTOKEN).toString();
+        String accessToken = req.getAttribute(AccessTokenFilter.ACCESS_TOKEN).toString();
 
-        JsonArrayBuilder jOrders = Json.createArrayBuilder();
-        JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
         Order order = orderService.getOrder(accessToken);
 
-        double total = 0;
         if (order == null) {
             resp.setStatus(200);
             resp.setCharacterEncoding("utf-8");
-            resp.getOutputStream().println(
-                    jOrders.build().toString()
-            );
-            return;
-        }
+            resp.getOutputStream().println("[]");
+        } else {
+            JsonArrayBuilder jOrders = Json.createArrayBuilder();
+            JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
 
-        for (Food food : order.getItems()) {
-            total += food.getCount() * food.getPrice();
-            jsonArrayBuilder.add(
+            double total = order.getMenu().entrySet().stream().mapToDouble(e -> {
+                jsonArrayBuilder.add(
+                        Json.createObjectBuilder().add("food_id", e.getKey()).add("count", e.getValue()).build()
+                );
+                return foodsService.getFood(e.getKey()).getPrice() * e.getValue();
+            }).sum();
+
+            resp.setCharacterEncoding("utf-8");
+            jOrders.add(
                     Json.createObjectBuilder()
-                            .add("food_id", food.getId())
-                            .add("count", food.getCount())
+                            .add("id", order.getOrderId())
+                            .add("user_id", order.getUser().getId())
+                            .add("items", jsonArrayBuilder)
+                            .add("total", total)
                             .build()
             );
+            resp.getOutputStream().println(jOrders.build().toString());
         }
-        resp.setCharacterEncoding("utf-8");
-        jOrders.add(
-                Json.createObjectBuilder()
-                        .add("id", order.getOrderId())
-                        .add("user_id", order.getSession().getUser().getId())
-                        .add("items", jsonArrayBuilder)
-                        .add("total", total)
-                        .build()
-        );
-        resp.getOutputStream().println(jOrders.build().toString());
     }
 }

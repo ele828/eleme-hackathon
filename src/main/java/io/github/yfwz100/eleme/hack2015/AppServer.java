@@ -33,19 +33,15 @@ public class AppServer {
         context.addServlet(LoginServlet.class, "/login");
 
         context.addFilter(AccessTokenFilter.class, "/foods", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-//        context.addFilter(EmptyRequestBodyFilter.class, "/foods", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
         context.addServlet(FoodsServlet.class, "/foods");
 
         context.addFilter(AccessTokenFilter.class, "/carts", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-//        context.addFilter(EmptyRequestBodyFilter.class, "/carts", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
         context.addServlet(CartsServlet.class, "/carts");
 
         context.addFilter(AccessTokenFilter.class, "/carts/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-//        context.addFilter(EmptyRequestBodyFilter.class, "/carts/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
         context.addServlet(AddFoodServlet.class, "/carts/*");
 
         context.addFilter(AccessTokenFilter.class, "/orders", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-//        context.addFilter(EmptyRequestBodyFilter.class, "/orders", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
         context.addServlet(OrderServlet.class, "/orders");
 
         context.addFilter(AccessTokenFilter.class, "/admin/orders", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));

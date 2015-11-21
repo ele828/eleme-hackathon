@@ -1,8 +1,9 @@
 package io.github.yfwz100.eleme.hack2015;
 
-import io.github.yfwz100.eleme.hack2015.exceptions.UserNotFoundException;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.UserNotFoundException;
 import io.github.yfwz100.eleme.hack2015.models.Session;
 import io.github.yfwz100.eleme.hack2015.services.AccessTokenService;
+import io.github.yfwz100.eleme.hack2015.services.memory.AccessTokenServiceImpl;
 
 import javax.json.Json;
 import javax.json.JsonException;
@@ -21,7 +22,7 @@ import java.io.IOException;
  */
 public class LoginServlet extends HttpServlet {
 
-    private AccessTokenService accessTokenService = new AccessTokenService();
+    private AccessTokenService accessTokenService = AccessTokenServiceImpl.getInstance();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

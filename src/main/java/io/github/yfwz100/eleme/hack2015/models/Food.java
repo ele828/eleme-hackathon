@@ -1,5 +1,7 @@
 package io.github.yfwz100.eleme.hack2015.models;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Food Model.
  *
@@ -9,7 +11,7 @@ public class Food {
 
     private int id;
     private double price;
-    private int stock;
+    private AtomicInteger stock;
     private int count;
 
     public Food() {
@@ -18,7 +20,7 @@ public class Food {
     public Food(int id, double price, int stock) {
         this.id = id;
         this.price = price;
-        this.stock = stock;
+        this.stock = new AtomicInteger(stock);
     }
 
     public int getId() {
@@ -38,11 +40,19 @@ public class Food {
     }
 
     public int getStock() {
+        return stock.get();
+    }
+
+    public AtomicInteger getStockCounter() {
         return stock;
     }
 
     public void setStock(int stock) {
-        this.stock = stock;
+        this.stock.set(stock);
+    }
+
+    public int consumeStock(int quantity) {
+        return this.stock.addAndGet(-quantity);
     }
 
     public int getCount() {
@@ -55,10 +65,6 @@ public class Food {
 
     @Override
     public String toString() {
-        return "Food{" +
-                "id=" + id +
-                ", price=" + price +
-                ", stock=" + stock +
-                '}';
+        return String.format("Food{id=%d, price=%s, stock=%s}", id, price, stock);
     }
 }

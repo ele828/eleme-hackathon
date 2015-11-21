@@ -6,7 +6,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Created by Eric on 15/11/13.
+ * The empty request filter.
+ *
+ * @author eric
  */
 public class EmptyRequestBodyFilter implements Filter {
     @Override
@@ -15,7 +17,6 @@ public class EmptyRequestBodyFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>middle ware");
         if (request.getInputStream().available() > 0) {
             chain.doFilter(request, response);
         } else {
@@ -34,6 +35,5 @@ public class EmptyRequestBodyFilter implements Filter {
 
     @Override
     public void destroy() {
-
     }
 }

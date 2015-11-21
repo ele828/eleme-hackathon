@@ -1,6 +1,7 @@
 package io.github.yfwz100.eleme.hack2015;
 
 import io.github.yfwz100.eleme.hack2015.services.AccessTokenService;
+import io.github.yfwz100.eleme.hack2015.services.memory.AccessTokenServiceImpl;
 
 import javax.json.Json;
 import javax.servlet.*;
@@ -15,8 +16,8 @@ import java.io.IOException;
  */
 public class AccessTokenFilter implements Filter {
 
-    public static String ACCESSTOKEN = "actk";
-    private AccessTokenService accessTokenService = new AccessTokenService();
+    public static final String ACCESS_TOKEN = "actk";
+    private AccessTokenService accessTokenService = AccessTokenServiceImpl.getInstance();
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -31,9 +32,8 @@ public class AccessTokenFilter implements Filter {
         String accessToken = request.getParameter("access_token");
         if (accessToken == null || accessToken.isEmpty()) {
             accessToken = req.getHeader("Access-Token");
-            System.out.println(req.getRequestURI() + ": " + accessToken);
         }
-        req.setAttribute(ACCESSTOKEN, accessToken);
+        req.setAttribute(ACCESS_TOKEN, accessToken);
 
         if (accessToken != null && accessTokenService.checkAccessToken(accessToken) != null) {
             chain.doFilter(request, response);

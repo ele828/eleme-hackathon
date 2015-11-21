@@ -1,65 +1,37 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
-import io.github.yfwz100.eleme.hack2015.database.Cache;
-import io.github.yfwz100.eleme.hack2015.database.DatabasePool;
-import io.github.yfwz100.eleme.hack2015.exceptions.UserNotFoundException;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.UserNotFoundException;
 import io.github.yfwz100.eleme.hack2015.models.Session;
-import io.github.yfwz100.eleme.hack2015.models.User;
-
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 /**
- * The mock of access token service.
+ * The interface related to access token.
  *
  * @author yfwz100
  */
-public class AccessTokenService {
+public interface AccessTokenService {
 
-    private static Map<String, User> userMap = new HashMap<>();
+    /**
+     * Check username and password.
+     *
+     * @param username the user name.
+     * @param password the password.
+     * @return the session.
+     * @throws UserNotFoundException if username and password is not matched.
+     */
+    Session checkUserPassword(String username, String password) throws UserNotFoundException;
 
-    static {
-        try (
-                Connection conn = DatabasePool.getConnection();
-                Statement stat = conn.createStatement();
-                ResultSet resultSet = stat.executeQuery("select * from user")
-        ) {
-            while (resultSet.next()) {
-                userMap.put(
-                        resultSet.getString("name"),
-                        new User(
-                                resultSet.getInt("id"),
-                                resultSet.getString("name"),
-                                resultSet.getString("password")
-                        )
-                );
-            }
-        } catch (SQLException ignored) {
-        }
-    }
+    /**
+     * Generate the access token.
+     *
+     * @return the string representation of the access token.
+     */
+    String generateAccessToken();
 
-    public Session checkUserPassword(String username, String password) throws UserNotFoundException {
-        User user = userMap.get(username);
-        if (user != null && user.getPass().equals(password)) {
-            String accessToken = generateAccessToken();
-            Session session = new Session(user, accessToken);
-            Cache.addUser(accessToken, session);
-            return session;
-        } else {
-            throw new UserNotFoundException();
-        }
-    }
-
-    public String generateAccessToken() {
-        return UUID.randomUUID().toString();
-    }
-
-    public Session checkAccessToken(String accessToken) {
-        return Cache.getUser(accessToken);
-    }
+    /**
+     * Check the validation of access token.
+     *
+     * @param accessToken the access token to check.
+     * @return the session.
+     */
+    Session checkAccessToken(String accessToken);
 }

@@ -10,6 +10,7 @@ public class User {
     private int id;
     private String name;
     private String pass;
+    private Order order;
 
     public User() {
     }
@@ -43,4 +44,13 @@ public class User {
     public void setPass(String pass) {
         this.pass = pass;
     }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
 }
