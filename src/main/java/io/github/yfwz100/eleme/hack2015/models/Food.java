@@ -9,13 +9,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Food {
 
-    private int id;
-    private double price;
-    private AtomicInteger stock;
-    private int count;
-
-    public Food() {
-    }
+    private final int id;
+    private final double price;
+    private final AtomicInteger stock;
 
     public Food(int id, double price, int stock) {
         this.id = id;
@@ -27,40 +23,16 @@ public class Food {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public double getPrice() {
         return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
     }
 
     public int getStock() {
         return stock.get();
     }
 
-    public AtomicInteger getStockCounter() {
-        return stock;
-    }
-
-    public void setStock(int stock) {
-        this.stock.set(stock);
-    }
-
     public int consumeStock(int quantity) {
         return this.stock.addAndGet(-quantity);
-    }
-
-    public int getCount() {
-        return count;
-    }
-
-    public void setCount(int count) {
-        this.count = count;
     }
 
     @Override

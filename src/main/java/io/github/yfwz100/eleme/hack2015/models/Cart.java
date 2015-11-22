@@ -14,6 +14,7 @@ public class Cart {
     private final String cartId;
     private final Map<Integer, AtomicInteger> menu = new HashMap<>(3);
     private final Session session;
+    private int count = 0;
 
     public Cart(Session session) {
         this.session = session;
@@ -33,10 +34,11 @@ public class Cart {
     }
 
     public int getSize() {
-        return menu.values().stream().mapToInt(AtomicInteger::get).sum();
+        return count;
     }
 
     public int addFood(Food food, int count) {
+        this.count += count;
         return menu.computeIfAbsent(food.getId(), i -> new AtomicInteger()).addAndGet(count);
     }
 
