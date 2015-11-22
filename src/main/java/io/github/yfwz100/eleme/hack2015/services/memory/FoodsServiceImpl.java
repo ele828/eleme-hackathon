@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -20,7 +21,7 @@ import java.util.TreeMap;
  */
 public class FoodsServiceImpl implements FoodsService {
 
-    private static final Map<Integer, Food> foods = new TreeMap<>();
+    private static final Map<Integer, Food> foods = new HashMap<>(1000);
 
     static {
         try (

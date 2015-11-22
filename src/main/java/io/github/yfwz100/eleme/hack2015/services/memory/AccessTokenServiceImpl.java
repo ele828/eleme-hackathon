@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class AccessTokenServiceImpl implements AccessTokenService {
 
-    private static final Map<String, User> userPool = new HashMap<>();
+    private static final Map<String, User> userPool = new HashMap<>(1000);
 
     static {
         poolUsers();
