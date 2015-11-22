@@ -1,21 +1,20 @@
 package io.github.yfwz100.eleme.hack2015.services.memory;
 
-import io.github.yfwz100.eleme.hack2015.database.Cache;
 import io.github.yfwz100.eleme.hack2015.database.DatabasePool;
-import io.github.yfwz100.eleme.hack2015.services.exceptions.UserNotFoundException;
 import io.github.yfwz100.eleme.hack2015.models.Session;
 import io.github.yfwz100.eleme.hack2015.models.User;
 import io.github.yfwz100.eleme.hack2015.services.AccessTokenService;
+import io.github.yfwz100.eleme.hack2015.services.Cache;
+import io.github.yfwz100.eleme.hack2015.services.ContextService;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.UserNotFoundException;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.LongAdder;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * The mock of access token service.
@@ -24,6 +23,7 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class AccessTokenServiceImpl implements AccessTokenService {
 
+    private static final Cache cache = ContextService.getCache();
     private static final Map<String, User> userPool = new HashMap<>(1000);
 
     static {
@@ -56,7 +56,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
         if (user != null && user.getPass().equals(password)) {
             String accessToken = generateAccessToken();
             Session session = new Session(user, accessToken);
-            Cache.addSession(session);
+            cache.addSession(session);
             return session;
         } else {
             throw new UserNotFoundException();
@@ -70,15 +70,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
 
     @Override
     public Session checkAccessToken(String accessToken) {
-        return Cache.getSession(accessToken);
+        return cache.getSession(accessToken);
     }
 
-    private static final AccessTokenService accessTokenService = new AccessTokenServiceImpl();
-
-    private AccessTokenServiceImpl() {
-    }
-
-    public static AccessTokenService getInstance() {
-        return accessTokenService;
-    }
 }

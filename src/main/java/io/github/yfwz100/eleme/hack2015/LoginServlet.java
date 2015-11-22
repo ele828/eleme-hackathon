@@ -1,9 +1,9 @@
 package io.github.yfwz100.eleme.hack2015;
 
-import io.github.yfwz100.eleme.hack2015.services.exceptions.UserNotFoundException;
 import io.github.yfwz100.eleme.hack2015.models.Session;
 import io.github.yfwz100.eleme.hack2015.services.AccessTokenService;
-import io.github.yfwz100.eleme.hack2015.services.memory.AccessTokenServiceImpl;
+import io.github.yfwz100.eleme.hack2015.services.ContextService;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.UserNotFoundException;
 
 import javax.json.Json;
 import javax.json.JsonException;
@@ -22,7 +22,17 @@ import java.io.IOException;
  */
 public class LoginServlet extends HttpServlet {
 
-    private AccessTokenService accessTokenService = AccessTokenServiceImpl.getInstance();
+    private static final AccessTokenService accessTokenService = ContextService.getAccessTokenService();
+    private static final String USER_NOT_FOUND_JSON = Json.createObjectBuilder()
+            .add("code", "USER_AUTH_FAIL")
+            .add("message", "用户名或密码错误")
+            .build()
+            .toString();
+    private static final String MALFORMED_JSON = Json.createObjectBuilder()
+            .add("code", "MALFORMED_JSON")
+            .add("message", "格式错误")
+            .build()
+            .toString();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -47,22 +57,10 @@ public class LoginServlet extends HttpServlet {
 
         } catch (UserNotFoundException e) {
             resp.setStatus(403);
-            resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "USER_AUTH_FAIL")
-                            .add("message", "用户名或密码错误")
-                            .build()
-                            .toString()
-            );
+            resp.getOutputStream().println(USER_NOT_FOUND_JSON);
         } catch (JsonException e) {
             resp.setStatus(400);
-            resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "MALFORMED_JSON")
-                            .add("message", "格式错误")
-                            .build()
-                            .toString()
-            );
+            resp.getOutputStream().println(MALFORMED_JSON);
         }
     }
 

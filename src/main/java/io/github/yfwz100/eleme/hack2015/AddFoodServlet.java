@@ -1,12 +1,11 @@
 package io.github.yfwz100.eleme.hack2015;
 
-import io.github.yfwz100.eleme.hack2015.database.Cache;
+import io.github.yfwz100.eleme.hack2015.services.CartsService;
+import io.github.yfwz100.eleme.hack2015.services.ContextService;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.CartNotFoundException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodNotFoundException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfLimitException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.NoAccessToCartException;
-import io.github.yfwz100.eleme.hack2015.services.CartsService;
-import io.github.yfwz100.eleme.hack2015.services.memory.CartsServiceImpl;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -24,7 +23,7 @@ import java.io.IOException;
  */
 public class AddFoodServlet extends HttpServlet {
 
-    CartsService cartsService = CartsServiceImpl.getInstance();
+    private static final CartsService cartsService = ContextService.getCartsService();
 
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String accessToken = req.getAttribute(AccessTokenFilter.ACCESS_TOKEN).toString();
@@ -33,7 +32,6 @@ public class AddFoodServlet extends HttpServlet {
             JsonObject info = reader.readObject();
             int foodId = info.getInt("food_id");
             int count = info.getInt("count");
-//            String cartId = req.getRequestURI().replace("/carts/", "");
             String cartId = req.getRequestURI().substring(7);
 
             cartsService.addFoodToCart(accessToken, cartId, foodId, count);
@@ -44,41 +42,16 @@ public class AddFoodServlet extends HttpServlet {
             resp.getOutputStream().println("Error" + e.getMessage());
         } catch (NoAccessToCartException ex) {
             resp.setStatus(401);
-            System.out.println(Cache.getSession(accessToken).getAccessToken() + "////" + accessToken);
-            resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "NOT_AUTHORIZED_TO_ACCESS_CART")
-                            .add("message", "无权限访问指定的篮子")
-                            .build()
-                            .toString()
-            );
+            resp.getOutputStream().println("{\"code\":\"NOT_AUTHORIZED_TO_ACCESS_CART\",\"message\":\"无权限访问指定的篮子\"}");
         } catch (CartNotFoundException ex) {
             resp.setStatus(404);
-            resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "CART_NOT_FOUND")
-                            .add("message", "篮子不存在")
-                            .build()
-                            .toString()
-            );
+            resp.getOutputStream().println("{\"code\":\"CART_NOT_FOUND\",\"message\":\"篮子不存在\"}");
         } catch (FoodNotFoundException ex) {
             resp.setStatus(404);
-            resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "FOOD_NOT_FOUND")
-                            .add("message", "食物不存在")
-                            .build()
-                            .toString()
-            );
+            resp.getOutputStream().println("{\"code\":\"FOOD_NOT_FOUND\",\"message\":\"食物不存在\"}");
         } catch (FoodOutOfLimitException ex) {
             resp.setStatus(403);
-            resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "FOOD_OUT_OF_LIMIT")
-                            .add("message", "篮子中食物数量超过了三个")
-                            .build()
-                            .toString()
-            );
+            resp.getOutputStream().println("{\"code\":\"FOOD_OUT_OF_LIMIT\",\"message\":\"篮子中食物数量超过了三个\"}");
         }
     }
 

@@ -11,7 +11,6 @@ import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * Foods service.
@@ -61,12 +60,4 @@ public class FoodsServiceImpl implements FoodsService {
         }
     }
 
-    private static final FoodsService foodsService = new FoodsServiceImpl();
-
-    private FoodsServiceImpl() {
-    }
-
-    public static FoodsService getInstance() {
-        return foodsService;
-    }
 }

@@ -1,10 +1,8 @@
 package io.github.yfwz100.eleme.hack2015;
 
-import io.github.yfwz100.eleme.hack2015.database.Cache;
 import io.github.yfwz100.eleme.hack2015.models.Cart;
-import io.github.yfwz100.eleme.hack2015.models.Session;
 import io.github.yfwz100.eleme.hack2015.services.CartsService;
-import io.github.yfwz100.eleme.hack2015.services.memory.CartsServiceImpl;
+import io.github.yfwz100.eleme.hack2015.services.ContextService;
 
 import javax.json.Json;
 import javax.servlet.ServletException;
@@ -20,7 +18,7 @@ import java.io.IOException;
  */
 public class CartsServlet extends HttpServlet {
 
-    private CartsService cartsService = CartsServiceImpl.getInstance();
+    private static final CartsService cartsService = ContextService.getCartsService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -31,10 +29,7 @@ public class CartsServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String accessToken = req.getAttribute(AccessTokenFilter.ACCESS_TOKEN).toString();
 
-        Session session = Cache.getSession(accessToken);
-
-        Cart cart = new Cart(session);
-        Cache.addCart(cart);
+        Cart cart = cartsService.createCart(accessToken);
 
         resp.getOutputStream().println(
                 Json.createObjectBuilder()

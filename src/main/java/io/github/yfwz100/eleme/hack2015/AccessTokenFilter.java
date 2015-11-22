@@ -1,7 +1,7 @@
 package io.github.yfwz100.eleme.hack2015;
 
 import io.github.yfwz100.eleme.hack2015.services.AccessTokenService;
-import io.github.yfwz100.eleme.hack2015.services.memory.AccessTokenServiceImpl;
+import io.github.yfwz100.eleme.hack2015.services.ContextService;
 
 import javax.json.Json;
 import javax.servlet.*;
@@ -17,7 +17,12 @@ import java.io.IOException;
 public class AccessTokenFilter implements Filter {
 
     public static final String ACCESS_TOKEN = "actk";
-    private AccessTokenService accessTokenService = AccessTokenServiceImpl.getInstance();
+    private static final AccessTokenService accessTokenService = ContextService.getAccessTokenService();
+    private static final String INVALID_ACCESS_TOKEN_JSON = Json.createObjectBuilder()
+            .add("code", "INVALID_ACCESS_TOKEN")
+            .add("message", "无效的令牌")
+            .build()
+            .toString();
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -39,13 +44,7 @@ public class AccessTokenFilter implements Filter {
             chain.doFilter(request, response);
         } else {
             resp.setStatus(401);
-            resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "INVALID_ACCESS_TOKEN")
-                            .add("message", "无效的令牌")
-                            .build()
-                            .toString()
-            );
+            resp.getOutputStream().println(INVALID_ACCESS_TOKEN_JSON);
         }
     }
 

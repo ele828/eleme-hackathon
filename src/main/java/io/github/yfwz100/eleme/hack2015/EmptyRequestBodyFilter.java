@@ -11,6 +11,13 @@ import java.io.IOException;
  * @author eric
  */
 public class EmptyRequestBodyFilter implements Filter {
+
+    private static final String EMPTY_REQUEST_JSON = Json.createObjectBuilder()
+            .add("code", "EMPTY_REQUEST")
+            .add("message", "请求体为空")
+            .build()
+            .toString();
+
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
     }
@@ -24,11 +31,7 @@ public class EmptyRequestBodyFilter implements Filter {
             resp.setStatus(400);
             resp.setCharacterEncoding("utf-8");
             resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "EMPTY_REQUEST")
-                            .add("message", "请求体为空")
-                            .build()
-                            .toString()
+                    EMPTY_REQUEST_JSON
             );
         }
     }

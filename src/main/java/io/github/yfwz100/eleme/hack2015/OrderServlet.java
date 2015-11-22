@@ -1,14 +1,13 @@
 package io.github.yfwz100.eleme.hack2015;
 
 import io.github.yfwz100.eleme.hack2015.models.Order;
+import io.github.yfwz100.eleme.hack2015.services.ContextService;
 import io.github.yfwz100.eleme.hack2015.services.FoodsService;
 import io.github.yfwz100.eleme.hack2015.services.OrdersService;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.CartNotFoundException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfStockException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.NoAccessToCartException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.OrderOutOfLimitException;
-import io.github.yfwz100.eleme.hack2015.services.memory.FoodsServiceImpl;
-import io.github.yfwz100.eleme.hack2015.services.memory.OrdersServiceImpl;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
@@ -27,8 +26,34 @@ import java.io.IOException;
  */
 public class OrderServlet extends HttpServlet {
 
-    private OrdersService orderService = OrdersServiceImpl.getInstance();
-    private FoodsService foodsService = FoodsServiceImpl.getInstance();
+    private static final OrdersService orderService = ContextService.getOrdersService();
+    private static final FoodsService foodsService = ContextService.getFoodsService();
+
+    private static final String ORDER_OUT_OF_LIMIT_JSON = Json.createObjectBuilder()
+            .add("code", "ORDER_OUT_OF_LIMIT")
+            .add("message", "每个用户只能下一单")
+            .build()
+            .toString();
+    private static final String CART_NOT_FOUND_JSON = Json.createObjectBuilder()
+            .add("code", "CART_NOT_FOUND")
+            .add("message", "篮子不存在")
+            .build()
+            .toString();
+    private static final String NOT_AUTHORIZED_TO_ACCESS_CART_JSON = Json.createObjectBuilder()
+            .add("code", "NOT_AUTHORIZED_TO_ACCESS_CART")
+            .add("message", "无权限访问指定的篮子")
+            .build()
+            .toString();
+    private static final String FOOD_OUT_OF_STOCK_JSON = Json.createObjectBuilder()
+            .add("code", "FOOD_OUT_OF_STOCK")
+            .add("message", "食物库存不足")
+            .build()
+            .toString();
+    private static final String MALFORMED_JSON = Json.createObjectBuilder()
+            .add("code", "MALFORMED_JSON")
+            .add("message", "格式错误")
+            .build()
+            .toString();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -50,51 +75,30 @@ public class OrderServlet extends HttpServlet {
             resp.setStatus(403);
             resp.setCharacterEncoding("utf-8");
             resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "ORDER_OUT_OF_LIMIT")
-                            .add("message", "每个用户只能下一单")
-                            .build()
-                            .toString()
+                    ORDER_OUT_OF_LIMIT_JSON
             );
         } catch (CartNotFoundException e) {
             resp.setStatus(404);
             resp.setCharacterEncoding("utf-8");
             resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "CART_NOT_FOUND")
-                            .add("message", "篮子不存在")
-                            .build()
-                            .toString()
+                    CART_NOT_FOUND_JSON
             );
         } catch (NoAccessToCartException e) {
             resp.setStatus(403);
             resp.setCharacterEncoding("utf-8");
             resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "NOT_AUTHORIZED_TO_ACCESS_CART")
-                            .add("message", "无权限访问指定的篮子")
-                            .build()
-                            .toString()
+                    NOT_AUTHORIZED_TO_ACCESS_CART_JSON
             );
         } catch (FoodOutOfStockException e) {
             resp.setStatus(403);
             resp.setCharacterEncoding("utf-8");
             resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "FOOD_OUT_OF_STOCK")
-                            .add("message", "食物库存不足")
-                            .build()
-                            .toString()
+                    FOOD_OUT_OF_STOCK_JSON
             );
         } catch (Exception e) {
             resp.setStatus(400);
-            System.out.println("格式错误: " + e.getMessage());
             resp.getOutputStream().println(
-                    Json.createObjectBuilder()
-                            .add("code", "MALFORMED_JSON")
-                            .add("message", "格式错误")
-                            .build()
-                            .toString()
+                    MALFORMED_JSON
             );
         }
 

@@ -1,9 +1,10 @@
 package io.github.yfwz100.eleme.hack2015.services.memory;
 
-import io.github.yfwz100.eleme.hack2015.database.Cache;
 import io.github.yfwz100.eleme.hack2015.models.Cart;
 import io.github.yfwz100.eleme.hack2015.models.Order;
 import io.github.yfwz100.eleme.hack2015.models.Session;
+import io.github.yfwz100.eleme.hack2015.services.Cache;
+import io.github.yfwz100.eleme.hack2015.services.ContextService;
 import io.github.yfwz100.eleme.hack2015.services.FoodsService;
 import io.github.yfwz100.eleme.hack2015.services.OrdersService;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.CartNotFoundException;
@@ -23,12 +24,13 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class OrdersServiceImpl implements OrdersService {
 
-    FoodsService foodsService = FoodsServiceImpl.getInstance();
+    private static final Cache cache = ContextService.getCache();
+    private static final FoodsService foodsService = ContextService.getFoodsService();
 
     @Override
     public Order generateOrder(String accessToken, String cartId)
             throws CartNotFoundException, NoAccessToCartException, FoodOutOfStockException, OrderOutOfLimitException {
-        Cart cart = Cache.getCart(cartId);
+        Cart cart = cache.getCart(cartId);
 
         // check validation of cart.
         if (cart == null)
@@ -56,19 +58,8 @@ public class OrdersServiceImpl implements OrdersService {
 
     @Override
     public Order getOrder(String accessToken) {
-        Session session = Cache.getSession(accessToken);
+        Session session = cache.getSession(accessToken);
         return session == null ? null : session.getUser().getOrder();
-    }
-
-    // -- singleton pattern
-
-    private static final OrdersService orderService = new OrdersServiceImpl();
-
-    private OrdersServiceImpl() {
-    }
-
-    public static OrdersService getInstance() {
-        return orderService;
     }
 
 }
