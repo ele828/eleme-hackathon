@@ -11,9 +11,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 
 /**
  * The mock of access token service.
@@ -22,16 +24,20 @@ import java.util.UUID;
  */
 public class AccessTokenServiceImpl implements AccessTokenService {
 
-    private static Map<String, User> userMap = new HashMap<>();
+    private static final Map<String, User> userPool = new HashMap<>();
 
     static {
+        poolUsers();
+    }
+
+    private static void poolUsers() {
         try (
                 Connection conn = DatabasePool.getConnection();
                 Statement stat = conn.createStatement();
                 ResultSet resultSet = stat.executeQuery("select * from user")
         ) {
             while (resultSet.next()) {
-                userMap.put(
+                userPool.put(
                         resultSet.getString("name"),
                         new User(
                                 resultSet.getInt("id"),
@@ -46,11 +52,11 @@ public class AccessTokenServiceImpl implements AccessTokenService {
 
     @Override
     public Session checkUserPassword(String username, String password) throws UserNotFoundException {
-        User user = userMap.get(username);
+        User user = userPool.get(username);
         if (user != null && user.getPass().equals(password)) {
             String accessToken = generateAccessToken();
             Session session = new Session(user, accessToken);
-            Cache.addSession(accessToken, session);
+            Cache.addSession(session);
             return session;
         } else {
             throw new UserNotFoundException();
