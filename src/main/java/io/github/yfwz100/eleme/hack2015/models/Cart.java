@@ -1,6 +1,9 @@
 package io.github.yfwz100.eleme.hack2015.models;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -12,13 +15,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Cart {
 
     private final String cartId;
-    private final Map<Integer, AtomicInteger> menu = new HashMap<>(3);
+    private final Map<Integer, AtomicInteger> menu;
     private final Session session;
     private int count = 0;
 
     public Cart(Session session) {
+        this(session, new HashMap<>());
+    }
+
+    public Cart(Session session, Map<Integer, AtomicInteger> menu) {
         this.session = session;
         this.cartId = UUID.randomUUID().toString();
+        this.menu = new HashMap<>(3);
     }
 
     public String getCartId() {

@@ -1,8 +1,8 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
-import io.github.yfwz100.eleme.hack2015.models.Cart;
-import io.github.yfwz100.eleme.hack2015.models.Order;
-import io.github.yfwz100.eleme.hack2015.models.Session;
+import io.github.yfwz100.eleme.hack2015.models.*;
+
+import java.util.Collection;
 
 /**
  * The interface of cache layer.
@@ -54,4 +54,27 @@ public interface Cache {
      * @return the order.
      */
     Order getOrder(String oId);
+
+    /**
+     * Get user by name.
+     *
+     * @param name the username.
+     * @return the user.
+     */
+    User getUser(String name);
+
+    /**
+     * Get food by id.
+     *
+     * @param foodId the food id.
+     * @return the food.
+     */
+    Food getFood(int foodId);
+
+    /**
+     * Get foods.
+     *
+     * @return the collection of foods.
+     */
+    Collection<Food> getFoods();
 }

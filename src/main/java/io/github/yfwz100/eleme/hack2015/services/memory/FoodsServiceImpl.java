@@ -1,16 +1,12 @@
 package io.github.yfwz100.eleme.hack2015.services.memory;
 
-import io.github.yfwz100.eleme.hack2015.database.DatabasePool;
 import io.github.yfwz100.eleme.hack2015.models.Food;
+import io.github.yfwz100.eleme.hack2015.services.Cache;
+import io.github.yfwz100.eleme.hack2015.services.ContextService;
 import io.github.yfwz100.eleme.hack2015.services.FoodsService;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfStockException;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Foods service.
@@ -20,39 +16,22 @@ import java.util.Map;
  */
 public class FoodsServiceImpl implements FoodsService {
 
-    private static final Map<Integer, Food> foods = new HashMap<>(1000);
-
-    static {
-        try (
-                Connection conn = DatabasePool.getConnection();
-                Statement stmt = conn.createStatement();
-                ResultSet rs = stmt.executeQuery("select * from food")
-        ) {
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                int stock = rs.getInt("stock");
-                double price = rs.getDouble("price");
-                foods.put(id, new Food(id, price, stock));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    private static final Cache cache = ContextService.getCache();
 
     @Override
     public Collection<Food> queryAvailableFoods() {
-        return foods.values();
+        return cache.getFoods();
     }
 
     @Override
     public Food getFood(int foodId) {
-        return foods.get(foodId);
+        return cache.getFood(foodId);
     }
 
     // TODO: replace synchronized keyword!
     @Override
     public synchronized int consumeFood(int foodId, int quantity) throws FoodOutOfStockException {
-        Food food = foods.get(foodId);
+        Food food = cache.getFood(foodId);
         if (food.getStock() - quantity >= 0) {
             return food.consumeStock(quantity);
         } else {
