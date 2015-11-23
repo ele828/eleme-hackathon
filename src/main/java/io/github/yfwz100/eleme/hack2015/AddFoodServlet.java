@@ -1,6 +1,5 @@
 package io.github.yfwz100.eleme.hack2015;
 
-import io.github.yfwz100.eleme.hack2015.services.CartsService;
 import io.github.yfwz100.eleme.hack2015.services.ContextService;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.CartNotFoundException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodNotFoundException;
@@ -23,8 +22,6 @@ import java.io.IOException;
  */
 public class AddFoodServlet extends HttpServlet {
 
-    private static final CartsService cartsService = ContextService.getCartsService();
-
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String accessToken = req.getAttribute(AccessTokenFilter.ACCESS_TOKEN).toString();
 
@@ -34,12 +31,11 @@ public class AddFoodServlet extends HttpServlet {
             int count = info.getInt("count");
             String cartId = req.getRequestURI().substring(7);
 
-            cartsService.addFoodToCart(accessToken, cartId, foodId, count);
+            ContextService.getCartsService().addFoodToCart(accessToken, cartId, foodId, count);
             resp.setStatus(204);
             resp.getOutputStream().println();
         } catch (IOException e) {
-            resp.setStatus(404);
-            resp.getOutputStream().println("Error" + e.getMessage());
+            resp.sendError(400);
         } catch (NoAccessToCartException ex) {
             resp.setStatus(401);
             resp.getOutputStream().println("{\"code\":\"NOT_AUTHORIZED_TO_ACCESS_CART\",\"message\":\"无权限访问指定的篮子\"}");

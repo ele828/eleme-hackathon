@@ -16,7 +16,7 @@ import java.util.UUID;
  */
 public class AccessTokenServiceImpl implements AccessTokenService {
 
-    private static final Cache cache = ContextService.getCache();
+    private final Cache cache = ContextService.getCache();
 
     @Override
     public Session checkUserPassword(String username, String password) throws UserNotFoundException {

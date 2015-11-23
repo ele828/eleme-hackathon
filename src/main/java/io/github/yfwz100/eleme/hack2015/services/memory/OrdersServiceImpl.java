@@ -24,8 +24,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class OrdersServiceImpl implements OrdersService {
 
-    private static final Cache cache = ContextService.getCache();
-    private static final FoodsService foodsService = ContextService.getFoodsService();
+    private final Cache cache = ContextService.getCache();
+    private final FoodsService foodsService = ContextService.getFoodsService();
 
     @Override
     public Order generateOrder(String accessToken, String cartId)

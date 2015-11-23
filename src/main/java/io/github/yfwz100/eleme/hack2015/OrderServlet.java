@@ -26,9 +26,6 @@ import java.io.IOException;
  */
 public class OrderServlet extends HttpServlet {
 
-    private static final OrdersService orderService = ContextService.getOrdersService();
-    private static final FoodsService foodsService = ContextService.getFoodsService();
-
     private static final String ORDER_OUT_OF_LIMIT_JSON = Json.createObjectBuilder()
             .add("code", "ORDER_OUT_OF_LIMIT")
             .add("message", "每个用户只能下一单")
@@ -55,6 +52,9 @@ public class OrderServlet extends HttpServlet {
             .build()
             .toString();
 
+    private final OrdersService orderService = ContextService.getOrdersService();
+    private final FoodsService foodsService = ContextService.getFoodsService();
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String accessToken = req.getAttribute(AccessTokenFilter.ACCESS_TOKEN).toString();
@@ -74,32 +74,22 @@ public class OrderServlet extends HttpServlet {
         } catch (OrderOutOfLimitException e) {
             resp.setStatus(403);
             resp.setCharacterEncoding("utf-8");
-            resp.getOutputStream().println(
-                    ORDER_OUT_OF_LIMIT_JSON
-            );
+            resp.getOutputStream().println(ORDER_OUT_OF_LIMIT_JSON);
         } catch (CartNotFoundException e) {
             resp.setStatus(404);
             resp.setCharacterEncoding("utf-8");
-            resp.getOutputStream().println(
-                    CART_NOT_FOUND_JSON
-            );
+            resp.getOutputStream().println(CART_NOT_FOUND_JSON);
         } catch (NoAccessToCartException e) {
             resp.setStatus(403);
             resp.setCharacterEncoding("utf-8");
-            resp.getOutputStream().println(
-                    NOT_AUTHORIZED_TO_ACCESS_CART_JSON
-            );
+            resp.getOutputStream().println(NOT_AUTHORIZED_TO_ACCESS_CART_JSON);
         } catch (FoodOutOfStockException e) {
             resp.setStatus(403);
             resp.setCharacterEncoding("utf-8");
-            resp.getOutputStream().println(
-                    FOOD_OUT_OF_STOCK_JSON
-            );
+            resp.getOutputStream().println(FOOD_OUT_OF_STOCK_JSON);
         } catch (Exception e) {
             resp.setStatus(400);
-            resp.getOutputStream().println(
-                    MALFORMED_JSON
-            );
+            resp.getOutputStream().println(MALFORMED_JSON);
         }
 
     }

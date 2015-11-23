@@ -18,7 +18,7 @@ import java.io.IOException;
  */
 public class CartsServlet extends HttpServlet {
 
-    private static final CartsService cartsService = ContextService.getCartsService();
+    private final CartsService cartsService = ContextService.getCartsService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

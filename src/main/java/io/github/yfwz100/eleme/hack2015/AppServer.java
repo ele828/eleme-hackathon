@@ -26,7 +26,6 @@ public class AppServer {
         connector.setPort(Props.APP_PORT);
         server.setConnectors(new Connector[]{connector});
         ServletContextHandler context = new ServletContextHandler();
-
         context.setContextPath("/");
 
         context.addFilter(EmptyRequestBodyFilter.class, "/login", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));

@@ -6,7 +6,6 @@ import io.github.yfwz100.eleme.hack2015.models.Session;
 import io.github.yfwz100.eleme.hack2015.services.Cache;
 import io.github.yfwz100.eleme.hack2015.services.CartsService;
 import io.github.yfwz100.eleme.hack2015.services.ContextService;
-import io.github.yfwz100.eleme.hack2015.services.FoodsService;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.CartNotFoundException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodNotFoundException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfLimitException;
@@ -21,8 +20,7 @@ public class CartsServiceImpl implements CartsService {
 
     private static final int MAX_FOOD_SIZE = 3;
 
-    private static final Cache cache = ContextService.getCache();
-    private static final FoodsService foodsService = ContextService.getFoodsService();
+    private final Cache cache = ContextService.getCache();
 
     @Override
     public Cart createCart(String accessToken) {
@@ -42,7 +40,7 @@ public class CartsServiceImpl implements CartsService {
         if (!cart.getSession().getAccessToken().equals(accessToken))
             throw new NoAccessToCartException();
 
-        Food food = foodsService.getFood(foodId);
+        Food food = cache.getFood(foodId);
 
         if (food == null)
             throw new FoodNotFoundException();

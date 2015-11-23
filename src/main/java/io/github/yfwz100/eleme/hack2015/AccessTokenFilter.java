@@ -17,12 +17,13 @@ import java.io.IOException;
 public class AccessTokenFilter implements Filter {
 
     public static final String ACCESS_TOKEN = "actk";
-    private static final AccessTokenService accessTokenService = ContextService.getAccessTokenService();
     private static final String INVALID_ACCESS_TOKEN_JSON = Json.createObjectBuilder()
             .add("code", "INVALID_ACCESS_TOKEN")
             .add("message", "无效的令牌")
             .build()
             .toString();
+
+    private final AccessTokenService accessTokenService = ContextService.getAccessTokenService();
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {

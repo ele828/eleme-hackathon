@@ -26,7 +26,7 @@ public interface Cache {
     Session getSession(String accessToken);
 
     /**
-     * MemoryBasedCache the cart.
+     * MemoryPoolCache the cart.
      *
      * @param cart the cart.
      */

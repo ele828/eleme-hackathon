@@ -22,7 +22,6 @@ import java.io.IOException;
  */
 public class LoginServlet extends HttpServlet {
 
-    private static final AccessTokenService accessTokenService = ContextService.getAccessTokenService();
     private static final String USER_NOT_FOUND_JSON = Json.createObjectBuilder()
             .add("code", "USER_AUTH_FAIL")
             .add("message", "用户名或密码错误")
@@ -33,6 +32,8 @@ public class LoginServlet extends HttpServlet {
             .add("message", "格式错误")
             .build()
             .toString();
+
+    private final AccessTokenService accessTokenService = ContextService.getAccessTokenService();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

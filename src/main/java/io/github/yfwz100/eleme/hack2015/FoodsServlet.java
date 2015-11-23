@@ -7,7 +7,6 @@ import io.github.yfwz100.eleme.hack2015.services.FoodsService;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,10 +17,9 @@ import java.io.IOException;
  *
  * @author yfwz100
  */
-@WebServlet(urlPatterns = "/foods")
 public class FoodsServlet extends HttpServlet {
 
-    private static final FoodsService foodsService = ContextService.getFoodsService();
+    private final FoodsService foodsService = ContextService.getFoodsService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

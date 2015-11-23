@@ -10,26 +10,29 @@ import java.sql.Statement;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * The cache layer.
  *
  * @author eric
  */
-public class MemoryBasedCache implements Cache {
-    protected final Map<String, Session> sessionPool = new ConcurrentHashMap<>();
-    protected final Map<String, Cart> cartPool = new ConcurrentHashMap<>();
-    protected final Map<String, Order> orderPool = new ConcurrentHashMap<>();
-    private static final Map<String, User> userPool = new HashMap<>(1000);
-    private static final Map<Integer, Food> foodPool = new HashMap<>(1000);
+public class MemoryPoolCache implements Cache {
+    protected final Map<String, Session> sessionPool = new HashMap<>();
+    protected final Map<String, Cart> cartPool = new HashMap<>();
+    protected final Map<String, Order> orderPool = new HashMap<>();
+    protected final Map<String, User> userPool = new HashMap<>(1000);
+    protected final Map<Integer, Food> foodPool = new HashMap<>(1000);
 
-    static {
+    {
+        init();
+    }
+
+    protected void init() {
         poolUsers();
         poolFoods();
     }
 
-    private static void poolUsers() {
+    protected void poolUsers() {
         try (
                 Connection conn = DatabasePool.getConnection();
                 Statement stat = conn.createStatement();
@@ -49,7 +52,7 @@ public class MemoryBasedCache implements Cache {
         }
     }
 
-    private static void poolFoods() {
+    protected void poolFoods() {
         try (
                 Connection conn = DatabasePool.getConnection();
                 Statement stmt = conn.createStatement();

@@ -1,6 +1,6 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
-import io.github.yfwz100.eleme.hack2015.database.MemoryBasedCache;
+import io.github.yfwz100.eleme.hack2015.database.RedisCache;
 import io.github.yfwz100.eleme.hack2015.services.memory.AccessTokenServiceImpl;
 import io.github.yfwz100.eleme.hack2015.services.memory.CartsServiceImpl;
 import io.github.yfwz100.eleme.hack2015.services.memory.FoodsServiceImpl;
@@ -13,10 +13,10 @@ import io.github.yfwz100.eleme.hack2015.services.memory.OrdersServiceImpl;
  */
 public class ContextService {
 
-    private static final Cache cache = new MemoryBasedCache();
+    private static final Cache cache = new RedisCache();
     private static final AccessTokenService accessTokenService = new AccessTokenServiceImpl();
-    private static final CartsService cartsService = new CartsServiceImpl();
     private static final FoodsService foodsService = new FoodsServiceImpl();
+    private static final CartsService cartsService = new CartsServiceImpl();
     private static final OrdersService ordersService = new OrdersServiceImpl();
 
     public static Cache getCache() {
