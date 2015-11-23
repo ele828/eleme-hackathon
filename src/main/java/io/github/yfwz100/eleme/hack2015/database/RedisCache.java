@@ -9,7 +9,6 @@ import redis.clients.jedis.JedisPoolConfig;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,7 +37,7 @@ public class RedisCache extends MemoryPoolCache {
         super.init();
     }
 
-    private class RedisFood extends io.github.yfwz100.eleme.hack2015.models.Food {
+    private class RedisFood extends Food {
 
         private final String key;
 
@@ -95,19 +94,27 @@ public class RedisCache extends MemoryPoolCache {
 
     @Override
     public Session getSession(String accessToken) {
-        Session session = super.getSession(accessToken);
-        if (session == null) {
-            try (Jedis jedis = pool.getResource()) {
-                final String key = "user:" + accessToken;
-                String name = jedis.get(key);
-                User user = getUser(name);
-                if (user != null) {
-                    session = new Session(user, name);
+        if (accessToken != null) {
+            Session session = super.getSession(accessToken);
+            if (session == null) {
+                try (Jedis jedis = pool.getResource()) {
+                    final String key = "user:" + accessToken;
+                    String name = jedis.get(key);
+                    if (name != null) {
+                        User user = getUser(name);
+                        if (user != null) {
+                            session = new Session(user, name);
 
+                        }
+                    } else {
+                        return null;
+                    }
                 }
             }
+            return session;
+        } else {
+            return null;
         }
-        return session;
     }
 
     @Override
@@ -130,16 +137,17 @@ public class RedisCache extends MemoryPoolCache {
             try (Jedis jedis = pool.getResource()) {
                 String prefix = "cart:" + cid;
                 String actk = jedis.get(prefix + ":actk");
-                if (actk == null) {
-                    return null; // fail fast.
+                if (actk != null) {
+                    String user = jedis.get(prefix + ":user");
+                    cart = new Cart(new Session(getUser(user), actk));
+                    for (String key : jedis.keys(prefix + ":item*")) {
+                        int val = Integer.parseInt(jedis.get(key));
+                        cart.addFood(getFood(Integer.parseInt(key.substring(prefix.length() + 6))), val);
+                    }
+                    super.addCart(cart);
+                } else {
+                    return null;
                 }
-                String user = jedis.get(prefix + ":user");
-                cart = new Cart(new Session(getUser(user), actk));
-                for (String key : jedis.keys(prefix + ":item*")) {
-                    int val = Integer.parseInt(jedis.get(key));
-                    cart.addFood(getFood(Integer.parseInt(key.substring(prefix.length() + 6))), val);
-                }
-                super.addCart(cart);
             }
         }
         return cart;
@@ -163,33 +171,27 @@ public class RedisCache extends MemoryPoolCache {
         if (order == null) {
             String prefix = "order:" + oId;
             try (Jedis jedis = pool.getResource()) {
-                User user = getUser(jedis.get(prefix + ":user"));
-                if (user != null) {
-                    order = user.getOrder();
-                    if (order == null) {
-                        HashMap<Integer, Integer> menu = new HashMap<>(3);
-                        for (String key : jedis.keys(prefix + ":item*")) {
-                            int val = Integer.parseInt(jedis.get(key));
-                            menu.put(Integer.parseInt(key.substring(prefix.length() + 6)), val);
+                String name = jedis.get(prefix + ":user");
+                if (name != null) {
+                    User user = getUser(name);
+                    if (user != null) {
+                        order = user.getOrder();
+                        if (order == null) {
+                            HashMap<Integer, Integer> menu = new HashMap<>(3);
+                            for (String key : jedis.keys(prefix + ":item*")) {
+                                int val = Integer.parseInt(jedis.get(key));
+                                menu.put(Integer.parseInt(key.substring(prefix.length() + 6)), val);
+                            }
+                            order = new Order(user, menu);
+                            super.addOrder(order);
                         }
-                        order = new Order(user, menu);
-                        super.addOrder(order);
                     }
+                } else {
+                    return null;
                 }
             }
         }
         return order;
     }
 
-    @Override
-    public Collection<Food> getFoods() {
-        // FIXME: inconsistent across machines.
-        return super.getFoods();
-    }
-
-    @Override
-    public Food getFood(int foodId) {
-        // FIXME: inconsistent across machines.
-        return super.getFood(foodId);
-    }
 }
