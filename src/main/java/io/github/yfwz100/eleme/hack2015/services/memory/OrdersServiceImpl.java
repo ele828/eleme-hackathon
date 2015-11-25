@@ -12,6 +12,7 @@ import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfStockExcept
 import io.github.yfwz100.eleme.hack2015.services.exceptions.NoAccessToCartException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.OrderOutOfLimitException;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -52,6 +53,7 @@ public class OrdersServiceImpl implements OrdersService {
 
         Order order = new Order(cart.getSession().getUser(), menu);
         cart.getSession().getUser().setOrder(order);
+        cache.addOrder(order);
 
         return order;
     }
@@ -62,4 +64,8 @@ public class OrdersServiceImpl implements OrdersService {
         return session == null ? null : session.getUser().getOrder();
     }
 
+    @Override
+    public Collection<Order> getOrders() {
+        return cache.getOrders();
+    }
 }

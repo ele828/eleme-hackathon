@@ -44,7 +44,7 @@ public class AppServer {
         context.addServlet(OrderServlet.class, "/orders");
 
         context.addFilter(AccessTokenFilter.class, "/admin/orders", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
-        context.addServlet(OrderServlet.class, "/admin/orders");
+        context.addServlet(AdminOrdersServlet.class, "/admin/orders");
 
         HandlerCollection handlers = new HandlerCollection();
         handlers.setHandlers(new Handler[]{context, new DefaultHandler()});

@@ -102,6 +102,11 @@ public class MemoryPoolCache implements Cache {
     }
 
     @Override
+    public Collection<Order> getOrders() {
+        return orderPool.values();
+    }
+
+    @Override
     public User getUser(String name) {
         return userPool.get(name);
     }

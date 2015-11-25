@@ -1,10 +1,12 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
+import io.github.yfwz100.eleme.hack2015.models.Order;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.CartNotFoundException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfStockException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.NoAccessToCartException;
 import io.github.yfwz100.eleme.hack2015.services.exceptions.OrderOutOfLimitException;
-import io.github.yfwz100.eleme.hack2015.models.Order;
+
+import java.util.Collection;
 
 /**
  * The service interface for orders.
@@ -35,4 +37,9 @@ public interface OrdersService {
      * @return the order.
      */
     Order getOrder(String accessToken);
+
+    /**
+     * Get orders.
+     */
+    Collection<Order> getOrders();
 }

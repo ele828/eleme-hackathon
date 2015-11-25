@@ -13,9 +13,7 @@ import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -27,6 +25,8 @@ public class RedisCache extends MemoryPoolCache {
 
     private JedisPool pool;
     private final String consumeFoodScript;
+
+    private final Set<String> orderIds = new HashSet<>();
 
     {
         try (BufferedReader inputStream =
@@ -60,6 +60,10 @@ public class RedisCache extends MemoryPoolCache {
         config.setMaxTotal(100);
 
         pool = new JedisPool(config, Props.REDIS_HOST, Props.REDIS_PORT);
+
+        try (Jedis jedis = pool.getResource()) {
+            jedis.del("orders");
+        }
 
         super.init();
     }
@@ -182,14 +186,18 @@ public class RedisCache extends MemoryPoolCache {
 
     @Override
     public void addOrder(Order order) {
-        try (Jedis jedis = pool.getResource()) {
-            String prefix = "order:" + order.getOrderId();
-            jedis.set(prefix + ":user", order.getUser().getName());
-            for (Map.Entry<Integer, Integer> e : order.getMenu().entrySet()) {
-                jedis.set(prefix + ":item:" + e.getKey(), e.getValue().toString());
+        if (order.getOrderId() != null) {
+            try (Jedis jedis = pool.getResource()) {
+                String prefix = "order:" + order.getOrderId();
+                jedis.sadd("orders", order.getOrderId());
+                orderIds.add(order.getOrderId());
+                jedis.set(prefix + ":user", order.getUser().getName());
+                for (Map.Entry<Integer, Integer> e : order.getMenu().entrySet()) {
+                    jedis.set(prefix + ":item:" + e.getKey(), e.getValue().toString());
+                }
             }
+            super.addOrder(order);
         }
-        super.addOrder(order);
     }
 
     @Override
@@ -227,5 +235,21 @@ public class RedisCache extends MemoryPoolCache {
             long val = (Long) jedis.eval(consumeFoodScript, 1, String.valueOf(id), String.valueOf(quantity));
             return (int) val;
         }
+    }
+
+    private static final String[] zeros = new String[0];
+
+    @Override
+    public Collection<Order> getOrders() {
+        try (Jedis jedis = pool.getResource()) {
+            Set<String> orders = jedis.smembers("orders");
+            orders.removeAll(orderPool.keySet());
+            if (!orders.isEmpty()) {
+                for (String orderId : orders) {
+                    getOrder(orderId);
+                }
+            }
+        }
+        return super.getOrders();
     }
 }

@@ -57,6 +57,13 @@ public interface Cache {
     Order getOrder(String oId);
 
     /**
+     * Get the collection of orders.
+     *
+     * @return the collection of orders.
+     */
+    Collection<Order> getOrders();
+
+    /**
      * Get user by name.
      *
      * @param name the username.
