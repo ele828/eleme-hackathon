@@ -10,10 +10,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Food {
 
     private final int id;
-    private final double price;
+    private final int price;
     private final AtomicInteger stock;
 
-    public Food(int id, double price, int stock) {
+    public Food(int id, int price, int stock) {
         this.id = id;
         this.price = price;
         this.stock = new AtomicInteger(stock);
@@ -23,7 +23,7 @@ public class Food {
         return id;
     }
 
-    public double getPrice() {
+    public int getPrice() {
         return price;
     }
 

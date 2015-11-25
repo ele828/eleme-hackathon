@@ -1,6 +1,7 @@
 package io.github.yfwz100.eleme.hack2015.services;
 
 import io.github.yfwz100.eleme.hack2015.models.*;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfStockException;
 
 import java.util.Collection;
 
@@ -77,4 +78,12 @@ public interface Cache {
      * @return the collection of foods.
      */
     Collection<Food> getFoods();
+
+    /**
+     * Consume the food by ID.
+     *
+     * @param id       the food ID.
+     * @param quantity the quantity.
+     */
+    int consumeFood(int id, int quantity) throws FoodOutOfStockException;
 }

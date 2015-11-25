@@ -1,16 +1,21 @@
 package io.github.yfwz100.eleme.hack2015.database;
 
 import io.github.yfwz100.eleme.hack2015.models.*;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfStockException;
 import io.github.yfwz100.eleme.hack2015.util.Props;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -21,6 +26,26 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RedisCache extends MemoryPoolCache {
 
     private JedisPool pool;
+    private final String consumeFoodScript;
+
+    {
+        try (BufferedReader inputStream =
+                     new BufferedReader(
+                             new InputStreamReader(
+                                     RedisCache.class.getResourceAsStream("/consume_food.lua")
+                             )
+                     )
+        ) {
+            StringJoiner script = new StringJoiner("\n");
+            String line;
+            while ((line = inputStream.readLine()) != null) {
+                script.add(line);
+            }
+            consumeFoodScript = script.toString();
+        } catch (IOException e) {
+            throw new RuntimeException();
+        }
+    }
 
     @Override
     protected void init() {
@@ -31,6 +56,8 @@ public class RedisCache extends MemoryPoolCache {
         config.setMaxWaitMillis(1000 * 100);
         //在borrow一个jedis实例时，是否提前进行validate操作；如果为true，则得到的jedis实例均是可用的；
         config.setTestOnBorrow(true);
+        //最大实例数.
+        config.setMaxTotal(100);
 
         pool = new JedisPool(config, Props.REDIS_HOST, Props.REDIS_PORT);
 
@@ -41,7 +68,7 @@ public class RedisCache extends MemoryPoolCache {
 
         private final String key;
 
-        public RedisFood(int id, double price, int stock) {
+        public RedisFood(int id, int price, int stock) {
             super(id, price, stock);
             this.key = "food:" + getId();
             try (Jedis jedis = pool.getResource()) {
@@ -75,7 +102,7 @@ public class RedisCache extends MemoryPoolCache {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 int stock = rs.getInt("stock");
-                double price = rs.getDouble("price");
+                int price = rs.getInt("price");
                 foodPool.put(id, new RedisFood(id, price, stock));
             }
         } catch (Exception e) {
@@ -194,4 +221,11 @@ public class RedisCache extends MemoryPoolCache {
         return order;
     }
 
+    @Override
+    public int consumeFood(int id, int quantity) throws FoodOutOfStockException {
+        try (Jedis jedis = pool.getResource()) {
+            long val = (Long) jedis.eval(consumeFoodScript, 1, String.valueOf(id), String.valueOf(quantity));
+            return (int) val;
+        }
+    }
 }

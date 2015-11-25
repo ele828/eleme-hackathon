@@ -2,6 +2,7 @@ package io.github.yfwz100.eleme.hack2015.database;
 
 import io.github.yfwz100.eleme.hack2015.models.*;
 import io.github.yfwz100.eleme.hack2015.services.Cache;
+import io.github.yfwz100.eleme.hack2015.services.exceptions.FoodOutOfStockException;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -61,13 +62,14 @@ public class MemoryPoolCache implements Cache {
             while (rs.next()) {
                 int id = rs.getInt("id");
                 int stock = rs.getInt("stock");
-                double price = rs.getDouble("price");
+                int price = rs.getInt("price");
                 foodPool.put(id, new Food(id, price, stock));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
 
     @Override
     public void addSession(Session session) {
@@ -112,5 +114,10 @@ public class MemoryPoolCache implements Cache {
     @Override
     public Collection<Food> getFoods() {
         return foodPool.values();
+    }
+
+    @Override
+    public int consumeFood(int id, int quantity) throws FoodOutOfStockException {
+        throw new FoodOutOfStockException();
     }
 }

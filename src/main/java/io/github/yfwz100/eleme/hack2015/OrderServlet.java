@@ -80,7 +80,7 @@ public class OrderServlet extends HttpServlet {
             resp.setCharacterEncoding("utf-8");
             resp.getOutputStream().println(CART_NOT_FOUND_JSON);
         } catch (NoAccessToCartException e) {
-            resp.setStatus(403);
+            resp.setStatus(401);
             resp.setCharacterEncoding("utf-8");
             resp.getOutputStream().println(NOT_AUTHORIZED_TO_ACCESS_CART_JSON);
         } catch (FoodOutOfStockException e) {
@@ -89,6 +89,7 @@ public class OrderServlet extends HttpServlet {
             resp.getOutputStream().println(FOOD_OUT_OF_STOCK_JSON);
         } catch (Exception e) {
             resp.setStatus(400);
+            e.printStackTrace();
             resp.getOutputStream().println(MALFORMED_JSON);
         }
 
