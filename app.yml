@@ -1,3 +1,8 @@
 language: go
 script:
-    - ./main
+    - go get github.com/julienschmidt/httprouter
+    - go get github.com/garyburd/redigo/redis
+    - go get github.com/pquerna/ffjson/ffjson
+    - go get github.com/go-martini/martini
+    - go get github.com/go-sql-driver/mysql
+    - go run main.go

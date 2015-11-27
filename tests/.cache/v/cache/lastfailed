@@ -1,7 +1,5 @@
 {
-  "test_carts.py": true, 
-  "test_errors.py": true, 
-  "test_foods.py": true, 
-  "test_login.py": true, 
-  "test_orders.py": true
+  "test_stock.py::test_admin_query_orders": true,
+  "test_stock.py::test_food_not_oversold_under_concurrent": true,
+  "test_stock.py::test_food_stock_consistency": true
 }
