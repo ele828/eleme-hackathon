@@ -69,7 +69,6 @@ var users map[string]User
 var gfoods map[int]Food
 
 func loadAllUser() {
-	start := time.Now()
 	rows, _:= db.Query("select * from user")
 	users = make(map[string]User)
 	var id int
@@ -78,11 +77,9 @@ func loadAllUser() {
 		rows.Scan(&id, &name, &pass)
 		users[name] = User{id, name, pass, false, ""}
 	}
-	fmt.Println("loaduser:%s", time.Now().Sub(start))
 }
 
 func loadAllFood() {
-	start := time.Now()
 	rows, _:= db.Query("select * from food")
 
 	gfoods = make(map[int]Food)
@@ -96,8 +93,6 @@ func loadAllFood() {
 		gfoods[id] = Food{id, price, stock}
 		c.Do("hset", "f", id, stock)
 	}
-//	c.Do("EXEC")
-	fmt.Println("loadfood:%s", time.Now().Sub(start))
 }
 
 func NewAccessToken(size int) string {
@@ -367,7 +362,7 @@ func PlaceOrderController(w http.ResponseWriter, r *http.Request, ps httprouter.
 		            redis.call("hset", "f", menu[i], new_stock)
 		            redis.call("hset", "o:f:"..KEYS[3], menu[i], menu[i+1])
 		          end
-		          redis.call("set", "o:"..KEYS[3], user_id)
+		          redis.call("set", "oid:"..KEYS[3], user_id)
 		          redis.call("set", "u:o:"..user_id, KEYS[3])
 		          return {200, "{\"id\":\""..KEYS[3].."\"}"}
 		        else
@@ -413,15 +408,10 @@ func ShowOrdersController(w http.ResponseWriter, r *http.Request, ps httprouter.
 	}
 
 	lua := `local uid = redis.call("get", "u:"..KEYS[1])
-		local okeys = redis.call("keys", "o:*")
-		local orders = {}
-		for i=1,table.getn(okeys) do
-		  local order = redis.call("get", okeys[i])
-		  local oid = string.sub(okeys[i], 2)
-		  local menu = redis.call("hgetall", "o:f:"..oid)
-		  orders[i] = {oid, menu}
-		else
-		  return {}
+		local oid = redis.call("get", "u:o:"..uid)
+		if oid then
+			local menu = redis.call("hgetall", "o:f:"..oid)
+			return {uid, oid, menu}
 		end`
 	var getScript = redis.NewScript(1, lua)
 	c := rp.Get()
@@ -473,14 +463,20 @@ func AdminShowOrdersController(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	lua := `local uid = redis.call("get", "u:"..KEYS[1])
-		local oid = redis.call("get", "u:o:"..uid)
-		if oid then
+		local okeys = redis.call("keys", "oid:*")
+		local orders = {}
+		for i=1,table.getn(okeys) do
+		  local order = redis.call("get", okeys[i])
+		  local oid = string.sub(okeys[i], 2)
 		  local menu = redis.call("hgetall", "o:f:"..oid)
-		  return {uid, oid, menu}
-		end`
+		  orders[i] = {oid, menu}
+		end
+		return orders`
 	var getScript = redis.NewScript(1, lua)
 	c := rp.Get()
 	reply, _ := redis.Values(getScript.Do(c, accessToken))
+
+	fmt.Println(reply)
 
 	var json bytes.Buffer
 	if len(reply) != 0 {
@@ -499,7 +495,7 @@ func AdminShowOrdersController(w http.ResponseWriter, r *http.Request, ps httpro
 		}
 		json.WriteString("[{")
 		json.WriteString(fmt.Sprintf(`"id": "%s", `, orderId))
-		//json.WriteString(fmt.Sprintf(`"user_id": "%s", `, userId))
+		json.WriteString(fmt.Sprintf(`"user_id": "%s", `, userId))
 		json.WriteString(fmt.Sprintf(`"items": [%s]`, strings.Join(j, ",")))
 		json.WriteString(fmt.Sprintf(`,"total": %d`, total))
 		json.WriteString("}]")
