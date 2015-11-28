@@ -281,34 +281,45 @@ func FoodsToCartController(w http.ResponseWriter, r *http.Request, p httprouter.
 	}
 
 	lua := `local cart_id = KEYS[1]
-			local access_token = KEYS[2]
-			local food_id = KEYS[3]
-			local qty = tonumber(KEYS[4])
-			local cart = redis.call("get", "c:"..cart_id)
-			local size = redis.call("get", "c:fn:"..cart_id)
-			if cart then
-				if cart == access_token then
-					if size + qty <= 3 then
-					  local f = redis.call("hget", "f", food_id)
-					  if f then
-						redis.call("hset", "c:f:"..cart_id, food_id, qty)
-						redis.call("incr", "c:fn:"..cart_id)
-						return {204, ""}
-					  else
-						return {404, "{\"code\": \"FOOD_NOT_FOUND\",\"message\":\"食物不存在\"}"}
-					  end
-					else
-						return {403, "{\"code\": \"FOOD_OUT_OF_LIMIT\",\"message\":\"篮子中食物数量超过了三个\"}"}
-					end
-				else
-					return {401, "{\"code\": \"NOT_AUTHORIZED_TO_ACCESS_CART\",\"message\":\"无权限访问指定的篮子\"}"}
-				end
-			else
-				return {404, "{\"code\": \"CART_NOT_FOUND\",\"message\":\"篮子不存在\"}"}
-			end`
+		local access_token = KEYS[2]
+		local food_id = KEYS[3]
+		local qty = tonumber(KEYS[4])
+		local cart = redis.call("get", "c:"..cart_id)
+		local size = redis.call("get", "c:fn:"..cart_id)
+		if size then
+		  size = tonumber(size)
+		else
+		  size = 0
+		end
+		if cart then
+		  if cart == access_token then
+		    size = size + qty
+		    if size <= 3 then
+		      local f = redis.call("hget", "f", food_id)
+		      if f then
+		        local original = redis.call("hget", "c:f:"..cart_id, food_id)
+			if original then
+			  qty = tonumber(original) + qty
+		        end
+		        redis.call("hset", "c:f:"..cart_id, food_id, qty)
+		        redis.call("set", "c:fn:"..cart_id, size)
+		        return {204, ""}
+		      else
+		        return {404, "{\"code\": \"FOOD_NOT_FOUND\",\"message\":\"食物不存在\"}"}
+		      end
+		    else
+		      return {403, "{\"code\": \"FOOD_OUT_OF_LIMIT\",\"message\":\"篮子中食物数量超过了三个\"}"}
+		    end
+		  else
+		    return {401, "{\"code\": \"NOT_AUTHORIZED_TO_ACCESS_CART\",\"message\":\"无权限访问指定的篮子\"}"}
+		  end
+		else
+		  return {404, "{\"code\": \"CART_NOT_FOUND\",\"message\":\"篮子不存在\"}"}
+		end`
 	var getScript = redis.NewScript(4, lua)
 	c := rp.Get()
-	reply, _ := redis.Values(getScript.Do(c, cartId, accessToken, req.FoodId, req.Count))
+	reply, err := redis.Values(getScript.Do(c, cartId, accessToken, req.FoodId, req.Count))
+	fmt.Println("addcart", err)
 
 	var statusCode int
 	var json string
@@ -386,7 +397,9 @@ func PlaceOrderController(w http.ResponseWriter, r *http.Request, ps httprouter.
 
 	var statusCode int
 	var json string
-	redis.Scan(reply, &statusCode, &json)
+	var msg string
+	redis.Scan(reply, &statusCode, &json, &msg)
+	fmt.Println("PO", err, msg)
 
 	w.WriteHeader(statusCode)
 	fmt.Fprintf(w, json)
