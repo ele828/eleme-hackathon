@@ -1,21 +1,21 @@
 package main
 
 import (
-	"github.com/julienschmidt/httprouter"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/garyburd/redigo/redis"
-	"database/sql"
-	"net/http"
-	"fmt"
-	"log"
-	"os"
-	"time"
-	"io/ioutil"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/julienschmidt/httprouter"
 	"github.com/pquerna/ffjson/ffjson"
-	"math/rand"
 	"bytes"
-	"strings"
+	"database/sql"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"math/rand"
+	"net/http"
+	"os"
 	"strconv"
+	"strings"
+	"time"
 )
 
 var (
@@ -34,42 +34,42 @@ var rp *redis.Pool
 var db *sql.DB
 
 type User struct {
-	Id int
-	Name string
-	Pass string
-	Placed bool
+	Id          int
+	Name        string
+	Pass        string
+	Placed      bool
 	AccessToken string
 }
 
 type Food struct {
-	Id int `json:"id"`
+	Id    int `json:"id"`
 	Price int `json:"price"`
 	Stock int `json:"stock"`
 }
 
 type Ofood struct {
-	Id int `json:"food_id"`
+	Id    int `json:"food_id"`
 	Count int `json:"count"`
 }
 
 type Cart struct {
-	Id string
+	Id          string
 	AccessToken string
-	FoodNum int
-	Foods []Ofood
+	FoodNum     int
+	Foods       []Ofood
 }
 
 type Order struct {
-	Id string `json:"id"`
+	Id    string  `json:"id"`
 	Items []Ofood `json:"items"`
-	Total int `json:"total"`
+	Total int     `json:"total"`
 }
 
 var users map[string]User
 var gfoods map[int]Food
 
 func loadAllUser() {
-	rows, _:= db.Query("select * from user")
+	rows, _ := db.Query("select * from user")
 	users = make(map[string]User)
 	var id int
 	var name, pass string
@@ -80,7 +80,7 @@ func loadAllUser() {
 }
 
 func loadAllFood() {
-	rows, _:= db.Query("select * from food")
+	rows, _ := db.Query("select * from food")
 
 	gfoods = make(map[int]Food)
 	var id int
@@ -98,10 +98,10 @@ func loadAllFood() {
 func NewAccessToken(size int) string {
 	ikind, kinds, result := 3, [][]int{[]int{10, 48}, []int{26, 97}, []int{26, 97}}, make([]byte, size)
 	rand.Seed(time.Now().UnixNano())
-	for i :=0; i < size; i++ {
+	for i := 0; i < size; i++ {
 		ikind = rand.Intn(3)
 		scope, base := kinds[ikind][0], kinds[ikind][1]
-		result[i] = uint8(base+rand.Intn(scope))
+		result[i] = uint8(base + rand.Intn(scope))
 	}
 	return string(result)
 }
@@ -123,17 +123,6 @@ func main() {
 	}()
 	go loadAllUser()
 	go loadAllFood()
-
-//	var getScript = redis.NewScript(2, `return redis.call('set', KEYS[1], KEYS[2])`)
-//	var getScript2 = redis.NewScript(1, `return redis.call('get', KEYS[1])`)
-//
-//	c := rp.Get()
-//	reply, _ := getScript.Do(c, "foo", 100)
-//	fmt.Println(reply)
-//
-//	r, _ := redis.Int(getScript2.Do(c, "foo"))
-//	fmt.Println(r)
-
 
 	router := httprouter.New()
 	router.POST("/login", LoginController)
@@ -268,7 +257,7 @@ func FoodsToCartController(w http.ResponseWriter, r *http.Request, p httprouter.
 
 	type Req struct {
 		FoodId int `json:"food_id"`
-		Count int `json:"count"`
+		Count  int `json:"count"`
 	}
 	var req Req
 	err := ffjson.Unmarshal(body, &req)
@@ -276,7 +265,7 @@ func FoodsToCartController(w http.ResponseWriter, r *http.Request, p httprouter.
 	if err != nil {
 		w.WriteHeader(400)
 		fmt.Println(err.Error())
-		fmt.Fprintf(w,`{"code": "MALFORMED_JSON", "message": "格式错误"}`)
+		fmt.Fprintf(w, `{"code": "MALFORMED_JSON", "message": "格式错误"}`)
 		return
 	}
 
@@ -318,8 +307,8 @@ func FoodsToCartController(w http.ResponseWriter, r *http.Request, p httprouter.
 		end`
 	var getScript = redis.NewScript(4, lua)
 	c := rp.Get()
-	reply, err := redis.Values(getScript.Do(c, cartId, accessToken, req.FoodId, req.Count))
-	fmt.Println("addcart", err)
+	ret, err := getScript.Do(c, cartId, accessToken, req.FoodId, req.Count)
+	reply, _ := redis.Values(ret, err)
 
 	var statusCode int
 	var json string
@@ -363,7 +352,7 @@ func PlaceOrderController(w http.ResponseWriter, r *http.Request, ps httprouter.
 		        local foods = {}
 		        for i = 1, table.getn(menu), 2 do
 		          foods[menu[i]] = tonumber(redis.call("hget", "f", menu[i]))
-		          if foods[menu[i]] <= 0 or foods[menu[i]] - tonumber(menu[i+1]) < 0 then
+		          if foods[menu[i]] <= 0 or foods[menu[i]] < tonumber(menu[i+1]) then
 		            valid = false
 		          end
 		        end
@@ -393,13 +382,12 @@ func PlaceOrderController(w http.ResponseWriter, r *http.Request, ps httprouter.
 		end`
 	var getScript = redis.NewScript(3, lua)
 	c := rp.Get()
-	reply, _ := redis.Values(getScript.Do(c, req.CartId, accessToken, orderId))
+	ret, err := getScript.Do(c, req.CartId, accessToken, orderId)
 
+	reply, _ := redis.Values(ret, err)
 	var statusCode int
 	var json string
-	var msg string
-	redis.Scan(reply, &statusCode, &json, &msg)
-	fmt.Println("PO", err, msg)
+	redis.Scan(reply, &statusCode, &json)
 
 	w.WriteHeader(statusCode)
 	fmt.Fprintf(w, json)
@@ -416,7 +404,7 @@ func ShowOrdersController(w http.ResponseWriter, r *http.Request, ps httprouter.
 
 	if len(accessToken) <= 0 {
 		w.WriteHeader(401)
-		fmt.Fprintf(w,`{"code": "INVALID_ACCESS_TOKEN", "message": "无效的令牌"}`)
+		fmt.Fprintf(w, `{"code": "INVALID_ACCESS_TOKEN", "message": "无效的令牌"}`)
 		return
 	}
 
@@ -439,7 +427,7 @@ func ShowOrdersController(w http.ResponseWriter, r *http.Request, ps httprouter.
 		var total int = 0
 		var j []string
 		v, _ := redis.Ints(items, nil)
-		for i := 0; i < len(v); i += 2  {
+		for i := 0; i < len(v); i += 2 {
 			fid := v[i]
 			cnt := v[i+1]
 			total += gfoods[fid].Price * cnt
@@ -451,7 +439,7 @@ func ShowOrdersController(w http.ResponseWriter, r *http.Request, ps httprouter.
 		json.WriteString(fmt.Sprintf(`,"total": %d`, total))
 		json.WriteString("}]")
 
-		fmt.Println(json.String())
+//		fmt.Println(json.String())
 	} else {
 		json.WriteString("{}")
 	}
@@ -471,7 +459,7 @@ func AdminShowOrdersController(w http.ResponseWriter, r *http.Request, ps httpro
 
 	if len(accessToken) <= 0 {
 		w.WriteHeader(401)
-		fmt.Fprintf(w,`{"code": "INVALID_ACCESS_TOKEN", "message": "无效的令牌"}`)
+		fmt.Fprintf(w, `{"code": "INVALID_ACCESS_TOKEN", "message": "无效的令牌"}`)
 		return
 	}
 
@@ -480,44 +468,55 @@ func AdminShowOrdersController(w http.ResponseWriter, r *http.Request, ps httpro
 		local orders = {}
 		for i=1,table.getn(okeys) do
 		  local order = redis.call("get", okeys[i])
-		  local oid = string.sub(okeys[i], 2)
+		  local oid = string.sub(okeys[i], 5)
+		  local uid = redis.call("get", "oid:"..oid)
 		  local menu = redis.call("hgetall", "o:f:"..oid)
-		  orders[i] = {oid, menu}
+		  orders[i] = {uid, oid, menu}
 		end
 		return orders`
 	var getScript = redis.NewScript(1, lua)
 	c := rp.Get()
 	reply, _ := redis.Values(getScript.Do(c, accessToken))
 
-	fmt.Println(reply)
+	fmt.Println(len(reply))
 
 	var json bytes.Buffer
 	if len(reply) != 0 {
-		var userId, orderId string
-		var items []interface{}
-		redis.Scan(reply, &userId, &orderId, &items)
+		json.WriteString("[")
+		for i := 0; i < len(reply); i++ {
+			var orderId string
+			var userId int
+			var items []interface{}
+			ret, _ := redis.Values(reply[i], nil)
+			redis.Scan(ret, &userId, &orderId, &items)
 
-		var total int = 0
-		var j []string
-		v, _ := redis.Ints(items, nil)
-		for i := 0; i < len(v); i += 2  {
-			fid := v[i]
-			cnt := v[i+1]
-			total += gfoods[fid].Price * cnt
-			j = append(j, fmt.Sprintf(`{"food_id": %d, "count": %d}`, fid, cnt))
+			var total int = 0
+			var j []string
+			v, _ := redis.Ints(items, nil)
+			for i := 0; i < len(v); i += 2 {
+				fid := v[i]
+				cnt := v[i+1]
+				total += gfoods[fid].Price * cnt
+				j = append(j, fmt.Sprintf(`{"food_id": %d, "count": %d}`, fid, cnt))
+			}
+
+			json.WriteString("{")
+			json.WriteString(fmt.Sprintf(`"id": "%s", `, orderId))
+			json.WriteString(fmt.Sprintf(`"user_id": %d, `, userId))
+			json.WriteString(fmt.Sprintf(`"items": [%s]`, strings.Join(j, ",")))
+			json.WriteString(fmt.Sprintf(`,"total": %d`, total))
+
+			if i == len(reply) - 1 {
+				json.WriteString("}")
+			} else {
+				json.WriteString("},")
+			}
+
 		}
-		json.WriteString("[{")
-		json.WriteString(fmt.Sprintf(`"id": "%s", `, orderId))
-		json.WriteString(fmt.Sprintf(`"user_id": "%s", `, userId))
-		json.WriteString(fmt.Sprintf(`"items": [%s]`, strings.Join(j, ",")))
-		json.WriteString(fmt.Sprintf(`,"total": %d`, total))
-		json.WriteString("}]")
-
-		fmt.Println(json.String())
-	} else {
+		json.WriteString("]")
+	}else {
 		json.WriteString("{}")
 	}
-
 	w.WriteHeader(200)
 	fmt.Fprintf(w, json.String())
 }
