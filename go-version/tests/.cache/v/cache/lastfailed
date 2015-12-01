@@ -1,5 +1,4 @@
 {
-  "test_stock.py::test_admin_query_orders": true,
-  "test_stock.py::test_food_not_oversold_under_concurrent": true,
-  "test_stock.py::test_food_stock_consistency": true
+  "test_orders.py::test_food_stock_consistency": true, 
+  "test_orders.py::test_make_order": true
 }

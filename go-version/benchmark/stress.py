@@ -124,27 +124,25 @@ class Query(object):
         headers["Content-Type"] = "application/json"
 
         start = time.time()
-        status = None
-        try:
-            self.client.request(method, url, body=json.dumps(data),
-                                headers=headers)
-            response = self.client.getresponse()
-            status = response.status
-            data = response.read().decode("utf-8")
-            self.client.close()
-            return {"status": status, "data": safe_loads(data)}
-        finally:
-            now = time.time()
-            elapsed = now - start
+        self.client.request(method, url, body=json.dumps(data),
+                            headers=headers)
+        response = self.client.getresponse()
+        status = response.status
+        data = response.read().decode("utf-8")
+        self.client.close()
 
-            with redis_store.pipeline() as p:
-                if status in (200, 204):
-                    p.incr(REQUEST_SUCCESS_KEY)
-                    p.lpush(REQ_FINISH_TIME_KEY, now)
-                else:
-                    p.incr(REQUEST_FAILURE_KEY)
-                p.lpush(REQ_RESP_TIME_KEY, elapsed)
-                p.execute()
+        now = time.time()
+        elapsed = now - start
+
+        with redis_store.pipeline() as p:
+            if status in (200, 204):
+                p.incr(REQUEST_SUCCESS_KEY)
+                p.lpush(REQ_FINISH_TIME_KEY, now)
+            else:
+                p.incr(REQUEST_FAILURE_KEY)
+            p.lpush(REQ_RESP_TIME_KEY, elapsed)
+            p.execute()
+        return {"status": status, "data": safe_loads(data)}
 
     def url(self, path):
         assert self.access_token
@@ -252,7 +250,6 @@ def thread(host, port, threads, num):
     pool = ThreadPool(threads)
     for _ in range(num):
         pool.apply_async(job, (host, port))
-        time.sleep(0.001)
     pool.close()
     pool.join()
 
@@ -403,7 +400,7 @@ def main():
     total_time = work(
         args.host, args.port, args.processes, args.threads, args.num)
 
-    report(args.processes, args.threads, total_time, float(args.num))
+    report(args.processes, args.threads, total_time, args.num)
 
 
 if __name__ == "__main__":

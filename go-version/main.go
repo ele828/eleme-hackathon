@@ -1,20 +1,21 @@
 package main
 
 import (
-	"github.com/julienschmidt/httprouter"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/garyburd/redigo/redis"
-	"database/sql"
-	"net/http"
-	"fmt"
-	"log"
-	"os"
-	"time"
-	"io/ioutil"
-	"github.com/pquerna/ffjson/ffjson"
-	"math/rand"
 	"bytes"
+	"database/sql"
+	"fmt"
+	"github.com/garyburd/redigo/redis"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/julienschmidt/httprouter"
+	"github.com/pquerna/ffjson/ffjson"
+	"io/ioutil"
+	"log"
+	"math/rand"
+	"net/http"
+	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 var (
@@ -33,43 +34,42 @@ var rp *redis.Pool
 var db *sql.DB
 
 type User struct {
-	Id int
-	Name string
-	Pass string
-	Placed bool
+	Id          int
+	Name        string
+	Pass        string
+	Placed      bool
 	AccessToken string
 }
 
 type Food struct {
-	Id int `json:"id"`
+	Id    int `json:"id"`
 	Price int `json:"price"`
 	Stock int `json:"stock"`
 }
 
 type Ofood struct {
-	Id int `json:"food_id"`
+	Id    int `json:"food_id"`
 	Count int `json:"count"`
 }
 
 type Cart struct {
-	Id string
+	Id          string
 	AccessToken string
-	FoodNum int
-	Foods []Ofood
+	FoodNum     int
+	Foods       []Ofood
 }
 
 type Order struct {
-	Id string `json:"id"`
+	Id    string  `json:"id"`
 	Items []Ofood `json:"items"`
-	Total int `json:"total"`
+	Total int     `json:"total"`
 }
 
 var users map[string]User
 var gfoods map[int]Food
 
 func loadAllUser() {
-	start := time.Now()
-	rows, _:= db.Query("select * from user")
+	rows, _ := db.Query("select * from user")
 	users = make(map[string]User)
 	var id int
 	var name, pass string
@@ -77,12 +77,10 @@ func loadAllUser() {
 		rows.Scan(&id, &name, &pass)
 		users[name] = User{id, name, pass, false, ""}
 	}
-	fmt.Println("loaduser:%s", time.Now().Sub(start))
 }
 
 func loadAllFood() {
-	start := time.Now()
-	rows, _:= db.Query("select * from food")
+	rows, _ := db.Query("select * from food")
 
 	gfoods = make(map[int]Food)
 	var id int
@@ -95,17 +93,15 @@ func loadAllFood() {
 		gfoods[id] = Food{id, price, stock}
 		c.Do("hset", "f", id, stock)
 	}
-//	c.Do("EXEC")
-	fmt.Println("loadfood:%s", time.Now().Sub(start))
 }
 
 func NewAccessToken(size int) string {
 	ikind, kinds, result := 3, [][]int{[]int{10, 48}, []int{26, 97}, []int{26, 97}}, make([]byte, size)
 	rand.Seed(time.Now().UnixNano())
-	for i :=0; i < size; i++ {
+	for i := 0; i < size; i++ {
 		ikind = rand.Intn(3)
 		scope, base := kinds[ikind][0], kinds[ikind][1]
-		result[i] = uint8(base+rand.Intn(scope))
+		result[i] = uint8(base + rand.Intn(scope))
 	}
 	return string(result)
 }
@@ -127,17 +123,6 @@ func main() {
 	}()
 	go loadAllUser()
 	go loadAllFood()
-
-//	var getScript = redis.NewScript(2, `return redis.call('set', KEYS[1], KEYS[2])`)
-//	var getScript2 = redis.NewScript(1, `return redis.call('get', KEYS[1])`)
-//
-//	c := rp.Get()
-//	reply, _ := getScript.Do(c, "foo", 100)
-//	fmt.Println(reply)
-//
-//	r, _ := redis.Int(getScript2.Do(c, "foo"))
-//	fmt.Println(r)
-
 
 	router := httprouter.New()
 	router.POST("/login", LoginController)
@@ -202,14 +187,16 @@ func FoodController(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 	}
 
 	lua := `if redis.call("get", "u:"..KEYS[1]) then
-				return redis.call("hvals", "f")
-			else
-				return {}
-			end`
+		  return redis.call("hgetall", "f")
+		else
+		  return {}
+		end`
 	var getScript = redis.NewScript(1, lua)
 
 	c := rp.Get()
-	reply, _ := redis.Values(getScript.Do(c, accessToken))
+	reply, _ := redis.StringMap(getScript.Do(c, accessToken))
+	//reply, _ := redis.Values(getScript.Do(c, accessToken))
+	//fmt.Println("food", reply)
 
 	if len(reply) == 0 {
 		w.WriteHeader(401)
@@ -219,8 +206,8 @@ func FoodController(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 
 	var json []string
 	for i := 1; i <= len(gfoods); i++ {
-		stock, _ := redis.Int(reply[i-1], nil)
-		json = append(json, fmt.Sprintf(`{"id": %d, "price": %d, "stock": %d}`, gfoods[i].Id, gfoods[i].Price, stock))
+		stock, _ := reply[strconv.Itoa(gfoods[i].Id)] //redis.Int(reply[i-1], nil)
+		json = append(json, fmt.Sprintf(`{"id": %d, "price": %d, "stock": %s}`, gfoods[i].Id, gfoods[i].Price, stock))
 	}
 	jsonAry := strings.Join(json, ",")
 	w.WriteHeader(200)
@@ -270,7 +257,7 @@ func FoodsToCartController(w http.ResponseWriter, r *http.Request, p httprouter.
 
 	type Req struct {
 		FoodId int `json:"food_id"`
-		Count int `json:"count"`
+		Count  int `json:"count"`
 	}
 	var req Req
 	err := ffjson.Unmarshal(body, &req)
@@ -278,39 +265,50 @@ func FoodsToCartController(w http.ResponseWriter, r *http.Request, p httprouter.
 	if err != nil {
 		w.WriteHeader(400)
 		fmt.Println(err.Error())
-		fmt.Fprintf(w,`{"code": "MALFORMED_JSON", "message": "格式错误"}`)
+		fmt.Fprintf(w, `{"code": "MALFORMED_JSON", "message": "格式错误"}`)
 		return
 	}
 
 	lua := `local cart_id = KEYS[1]
-			local access_token = KEYS[2]
-			local food_id = KEYS[3]
-			local qty = tonumber(KEYS[4])
-			local cart = redis.call("get", "c:"..cart_id)
-			local size = redis.call("get", "c:fn:"..cart_id)
-			if cart then
-				if cart == access_token then
-					if size + qty <= 3 then
-					  local f = redis.call("hget", "f", food_id)
-					  if f then
-						redis.call("hset", "c:f:"..cart_id, food_id, qty)
-						redis.call("incr", "c:fn:"..cart_id)
-						return {204, ""}
-					  else
-						return {404, "{\"code\": \"FOOD_NOT_FOUND\",\"message\":\"食物不存在\"}"}
-					  end
-					else
-						return {403, "{\"code\": \"FOOD_OUT_OF_LIMIT\",\"message\":\"篮子中食物数量超过了三个\"}"}
-					end
-				else
-					return {401, "{\"code\": \"NOT_AUTHORIZED_TO_ACCESS_CART\",\"message\":\"无权限访问指定的篮子\"}"}
-				end
-			else
-				return {404, "{\"code\": \"CART_NOT_FOUND\",\"message\":\"篮子不存在\"}"}
-			end`
+		local access_token = KEYS[2]
+		local food_id = KEYS[3]
+		local qty = tonumber(KEYS[4])
+		local cart = redis.call("get", "c:"..cart_id)
+		local size = redis.call("get", "c:fn:"..cart_id)
+		if size then
+		  size = tonumber(size)
+		else
+		  size = 0
+		end
+		if cart then
+		  if cart == access_token then
+		    size = size + qty
+		    if size <= 3 then
+		      local f = redis.call("hget", "f", food_id)
+		      if f then
+		        local original = redis.call("hget", "c:f:"..cart_id, food_id)
+			if original then
+			  qty = tonumber(original) + qty
+		        end
+		        redis.call("hset", "c:f:"..cart_id, food_id, qty)
+		        redis.call("set", "c:fn:"..cart_id, size)
+		        return {204, ""}
+		      else
+		        return {404, "{\"code\": \"FOOD_NOT_FOUND\",\"message\":\"食物不存在\"}"}
+		      end
+		    else
+		      return {403, "{\"code\": \"FOOD_OUT_OF_LIMIT\",\"message\":\"篮子中食物数量超过了三个\"}"}
+		    end
+		  else
+		    return {401, "{\"code\": \"NOT_AUTHORIZED_TO_ACCESS_CART\",\"message\":\"无权限访问指定的篮子\"}"}
+		  end
+		else
+		  return {404, "{\"code\": \"CART_NOT_FOUND\",\"message\":\"篮子不存在\"}"}
+		end`
 	var getScript = redis.NewScript(4, lua)
 	c := rp.Get()
-	reply, _ := redis.Values(getScript.Do(c, cartId, accessToken, req.FoodId, req.Count))
+	ret, err := getScript.Do(c, cartId, accessToken, req.FoodId, req.Count)
+	reply, _ := redis.Values(ret, err)
 
 	var statusCode int
 	var json string
@@ -344,47 +342,49 @@ func PlaceOrderController(w http.ResponseWriter, r *http.Request, ps httprouter.
 	orderId := string(NewAccessToken(16))
 
 	lua := `local actk = redis.call("get", "c:"..KEYS[1])
-			local user_id = redis.call("get", "u:"..KEYS[2])
-			if redis.call("get", "u:o:"..user_id) == false then
-			  if actk then
-				if KEYS[2] == actk then
-				  local menu = redis.call("hgetall", "c:f:"..KEYS[1])
-				  local foods = redis.call("hvals", "f")
-				  local valid = true
-				  if menu then
-					for i = 1, table.getn(menu), 2 do
-					  if foods[tonumber(menu[i])] < menu[i+1] then
-						valid = false
-					  end
-					end
-					if valid then
-					  for i = 1, table.getn(menu), 2 do
-					  	local new_stock = tonumber(foods[tonumber(menu[i])]) - tonumber(menu[i+1])
-						redis.call("hset", "f", menu[i], new_stock)
-						redis.call("hset", "o:f:"..KEYS[3], menu[i], menu[i+1])
-					  end
-					  redis.call("set", "o:"..KEYS[3], user_id)
-					  redis.call("set", "u:o:"..user_id, KEYS[3])
-					  return {200, "{\"id\":\""..KEYS[3].."\"}"}
-					else
-					  return {403, "{\"code\": \"FOOD_OUT_OF_STOCK\",\"message\":\"食物库存不足\"}"}
-					end
-				  else
-					return {403, "{\"code\": \"NO_FOOD_IN_CART\",\"message\":\"篮子中无食物\"}"}
-				  end
-				else
-				  return {401, "{\"code\": \"NOT_AUTHORIZED_TO_ACCESS_CART\",\"message\":\"无权限访问指定的篮子\"}"}
-				end
-			  else
-				return {404, "{\"code\": \"CART_NOT_FOUND\",\"message\":\"篮子不存在\"}"}
-			  end
-			else
-			  return {403, "{\"code\": \"ORDER_OUT_OF_LIMIT\",\"message\":\"每个用户只能下一单\"}"}
-			end`
+		local user_id = redis.call("get", "u:"..KEYS[2])
+		if redis.call("get", "u:o:"..user_id) == false then
+		  if actk then
+		    if KEYS[2] == actk then
+		      local menu = redis.call("hgetall", "c:f:"..KEYS[1])
+		      if menu then
+		        local valid = true
+		        local foods = {}
+		        for i = 1, table.getn(menu), 2 do
+		          foods[menu[i]] = tonumber(redis.call("hget", "f", menu[i]))
+		          if foods[menu[i]] <= 0 or foods[menu[i]] < tonumber(menu[i+1]) then
+		            valid = false
+		          end
+		        end
+		        if valid then
+		          for i = 1, table.getn(menu), 2 do
+		            local new_stock = foods[menu[i]] - tonumber(menu[i+1])
+		            redis.call("hset", "f", menu[i], new_stock)
+		            redis.call("hset", "o:f:"..KEYS[3], menu[i], menu[i+1])
+		          end
+		          redis.call("set", "oid:"..KEYS[3], user_id)
+		          redis.call("set", "u:o:"..user_id, KEYS[3])
+		          return {200, "{\"id\":\""..KEYS[3].."\"}"}
+		        else
+		          return {403, "{\"code\": \"FOOD_OUT_OF_STOCK\",\"message\":\"食物库存不足\"}"}
+		        end
+		      else
+		        return {403, "{\"code\": \"NO_FOOD_IN_CART\",\"message\":\"篮子中无食物\"}"}
+		      end
+		    else
+		      return {401, "{\"code\": \"NOT_AUTHORIZED_TO_ACCESS_CART\",\"message\":\"无权限访问指定的篮子\"}"}
+		    end
+		  else
+		    return {404, "{\"code\": \"CART_NOT_FOUND\",\"message\":\"篮子不存在\"}"}
+		  end
+		else
+		  return {403, "{\"code\": \"ORDER_OUT_OF_LIMIT\",\"message\":\"每个用户只能下一单\"}"}
+		end`
 	var getScript = redis.NewScript(3, lua)
 	c := rp.Get()
-	reply, _ := redis.Values(getScript.Do(c, req.CartId, accessToken, orderId))
+	ret, err := getScript.Do(c, req.CartId, accessToken, orderId)
 
+	reply, _ := redis.Values(ret, err)
 	var statusCode int
 	var json string
 	redis.Scan(reply, &statusCode, &json)
@@ -404,16 +404,16 @@ func ShowOrdersController(w http.ResponseWriter, r *http.Request, ps httprouter.
 
 	if len(accessToken) <= 0 {
 		w.WriteHeader(401)
-		fmt.Fprintf(w,`{"code": "INVALID_ACCESS_TOKEN", "message": "无效的令牌"}`)
+		fmt.Fprintf(w, `{"code": "INVALID_ACCESS_TOKEN", "message": "无效的令牌"}`)
 		return
 	}
 
 	lua := `local uid = redis.call("get", "u:"..KEYS[1])
-			local oid = redis.call("get", "u:o:"..uid)
-			if oid then
-				local menu = redis.call("hgetall", "o:f:"..oid)
-				return {uid, oid, menu}
-			end`
+		local oid = redis.call("get", "u:o:"..uid)
+		if oid then
+			local menu = redis.call("hgetall", "o:f:"..oid)
+			return {uid, oid, menu}
+		end`
 	var getScript = redis.NewScript(1, lua)
 	c := rp.Get()
 	reply, _ := redis.Values(getScript.Do(c, accessToken))
@@ -427,7 +427,7 @@ func ShowOrdersController(w http.ResponseWriter, r *http.Request, ps httprouter.
 		var total int = 0
 		var j []string
 		v, _ := redis.Ints(items, nil)
-		for i := 0; i < len(v); i += 2  {
+		for i := 0; i < len(v); i += 2 {
 			fid := v[i]
 			cnt := v[i+1]
 			total += gfoods[fid].Price * cnt
@@ -439,7 +439,6 @@ func ShowOrdersController(w http.ResponseWriter, r *http.Request, ps httprouter.
 		json.WriteString(fmt.Sprintf(`,"total": %d`, total))
 		json.WriteString("}]")
 
-		fmt.Println(json.String())
 	} else {
 		json.WriteString("{}")
 	}
@@ -459,47 +458,64 @@ func AdminShowOrdersController(w http.ResponseWriter, r *http.Request, ps httpro
 
 	if len(accessToken) <= 0 {
 		w.WriteHeader(401)
-		fmt.Fprintf(w,`{"code": "INVALID_ACCESS_TOKEN", "message": "无效的令牌"}`)
+		fmt.Fprintf(w, `{"code": "INVALID_ACCESS_TOKEN", "message": "无效的令牌"}`)
 		return
 	}
 
 	lua := `local uid = redis.call("get", "u:"..KEYS[1])
-			local oid = redis.call("get", "u:o:"..uid)
-			if oid then
-				local menu = redis.call("hgetall", "o:f:"..oid)
-				return {uid, oid, menu}
-			end`
+		local okeys = redis.call("keys", "oid:*")
+		local orders = {}
+		for i=1,table.getn(okeys) do
+		  local order = redis.call("get", okeys[i])
+		  local oid = string.sub(okeys[i], 5)
+		  local uid = redis.call("get", "oid:"..oid)
+		  local menu = redis.call("hgetall", "o:f:"..oid)
+		  orders[i] = {uid, oid, menu}
+		end
+		return orders`
 	var getScript = redis.NewScript(1, lua)
 	c := rp.Get()
 	reply, _ := redis.Values(getScript.Do(c, accessToken))
 
+	fmt.Println(len(reply))
+
 	var json bytes.Buffer
 	if len(reply) != 0 {
-		var userId, orderId string
-		var items []interface{}
-		redis.Scan(reply, &userId, &orderId, &items)
+		json.WriteString("[")
+		for i := 0; i < len(reply); i++ {
+			var orderId string
+			var userId int
+			var items []interface{}
+			ret, _ := redis.Values(reply[i], nil)
+			redis.Scan(ret, &userId, &orderId, &items)
 
-		var total int = 0
-		var j []string
-		v, _ := redis.Ints(items, nil)
-		for i := 0; i < len(v); i += 2  {
-			fid := v[i]
-			cnt := v[i+1]
-			total += gfoods[fid].Price * cnt
-			j = append(j, fmt.Sprintf(`{"food_id": %d, "count": %d}`, fid, cnt))
+			var total int = 0
+			var j []string
+			v, _ := redis.Ints(items, nil)
+			for i := 0; i < len(v); i += 2 {
+				fid := v[i]
+				cnt := v[i+1]
+				total += gfoods[fid].Price * cnt
+				j = append(j, fmt.Sprintf(`{"food_id": %d, "count": %d}`, fid, cnt))
+			}
+
+			json.WriteString("{")
+			json.WriteString(fmt.Sprintf(`"id": "%s", `, orderId))
+			json.WriteString(fmt.Sprintf(`"user_id": %d, `, userId))
+			json.WriteString(fmt.Sprintf(`"items": [%s]`, strings.Join(j, ",")))
+			json.WriteString(fmt.Sprintf(`,"total": %d`, total))
+
+			if i == len(reply)-1 {
+				json.WriteString("}")
+			} else {
+				json.WriteString("},")
+			}
+
 		}
-		json.WriteString("[{")
-		json.WriteString(fmt.Sprintf(`"id": "%s", `, orderId))
-		json.WriteString(fmt.Sprintf(`"user_id": "%s", `, userId))
-		json.WriteString(fmt.Sprintf(`"items": [%s]`, strings.Join(j, ",")))
-		json.WriteString(fmt.Sprintf(`,"total": %d`, total))
-		json.WriteString("}]")
-
-		fmt.Println(json.String())
+		json.WriteString("]")
 	} else {
 		json.WriteString("{}")
 	}
-
 	w.WriteHeader(200)
 	fmt.Fprintf(w, json.String())
 }
