@@ -1,13 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"database/sql"
+	"fmt"
 	"github.com/garyburd/redigo/redis"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/julienschmidt/httprouter"
 	"github.com/pquerna/ffjson/ffjson"
-	"bytes"
-	"database/sql"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -439,7 +439,6 @@ func ShowOrdersController(w http.ResponseWriter, r *http.Request, ps httprouter.
 		json.WriteString(fmt.Sprintf(`,"total": %d`, total))
 		json.WriteString("}]")
 
-//		fmt.Println(json.String())
 	} else {
 		json.WriteString("{}")
 	}
@@ -506,7 +505,7 @@ func AdminShowOrdersController(w http.ResponseWriter, r *http.Request, ps httpro
 			json.WriteString(fmt.Sprintf(`"items": [%s]`, strings.Join(j, ",")))
 			json.WriteString(fmt.Sprintf(`,"total": %d`, total))
 
-			if i == len(reply) - 1 {
+			if i == len(reply)-1 {
 				json.WriteString("}")
 			} else {
 				json.WriteString("},")
@@ -514,7 +513,7 @@ func AdminShowOrdersController(w http.ResponseWriter, r *http.Request, ps httpro
 
 		}
 		json.WriteString("]")
-	}else {
+	} else {
 		json.WriteString("{}")
 	}
 	w.WriteHeader(200)
